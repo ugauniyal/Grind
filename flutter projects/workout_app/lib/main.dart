@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Gym Buddy (Prototype)'),
+      home: const MyHomePage(title: 'Grind'),
 
     );
   }
@@ -39,18 +39,11 @@ class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   List<Widget> body = const[
     Icon(Icons.home),
-    Icon(Icons.menu),
-    Icon(Icons.person)
-
+    Icon(Icons.search),
+    Icon(Icons.handshake),
+    Icon(Icons.chat),
   ];
 
-
-  // void _incrementCounter() {
-  //   setState(() {
-  //
-  //     _counter++;
-  //   });
-  // }
 
 
 
@@ -62,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
         backgroundColor: Colors.white,
 
-        title: const Text('WorkoutApp',style: TextStyle(fontSize: 30)),
+        title: const Text('Grind',style: TextStyle(fontSize: 30)),
 
         centerTitle: true,
         actions: <Widget>[
@@ -91,6 +84,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
+        unselectedLabelStyle: TextStyle(color: Colors.black),
+        selectedLabelStyle: TextStyle(color: Colors.black),
+        type: BottomNavigationBarType.fixed,
         onTap: (int newIndex){
           setState(() {
             _currentIndex = newIndex;
@@ -99,15 +95,19 @@ class _MyHomePageState extends State<MyHomePage> {
       items: const [
         BottomNavigationBarItem(
           label: 'Home',
-          icon: Icon(Icons.home),
+          icon: Icon(Icons.home, color: Colors.black),
         ),
         BottomNavigationBarItem(
-          label: 'Menu',
-          icon: Icon(Icons.menu),
+          label: 'Explore',
+          icon: Icon(Icons.search, color: Colors.black),
         ),
         BottomNavigationBarItem(
-          label: 'profile',
-          icon: Icon(Icons.person),
+          label: 'Gym Buddy',
+          icon: Icon(Icons.handshake, color: Colors.black,),
+        ),
+        BottomNavigationBarItem(
+          label: 'Chat',
+          icon: Icon(Icons.chat, color: Colors.black),
         ),
       ],
     ),
