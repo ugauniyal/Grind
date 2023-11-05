@@ -1,8 +1,10 @@
 
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:workout_app/main.dart';
+import 'BottomNagivationBar.dart';
+import 'Home_Page.dart';
+
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,9 +19,9 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(Duration(seconds: 3),(){
+    Timer(const Duration(seconds: 3),(){
       Navigator.pushReplacement(context, MaterialPageRoute(
-          builder: (context)=>MyHomePage(title: 'Grind')
+          builder: (context)=> BottomNavBarLayout(key: UniqueKey(),)
       ));
     });
   }
@@ -29,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Container(
         color: Colors.black,
-        child: Center(child: Text('Welcome To Grind',style: TextStyle(
+        child: const Center(child: Text('Welcome To Grind',style: TextStyle(
           fontSize: 34,
           fontFamily: 'FontName',
           fontWeight: FontWeight.w700,

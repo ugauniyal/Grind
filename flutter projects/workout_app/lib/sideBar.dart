@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:workout_app/Need_Help.dart';
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});
@@ -58,7 +59,12 @@ class NavBar extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.help),
             title: Text('Need help?'),
-            onTap: () => Null,
+            onTap: () {
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context)=>NeedHelp())
+
+              );
+            },
           ),
           Divider(),
           ListTile(
