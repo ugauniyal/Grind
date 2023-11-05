@@ -38,6 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
     return Scaffold(
+      extendBodyBehindAppBar: false,
 
       drawer: const NavBar(),
       appBar: AppBar(
@@ -51,6 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
 
         centerTitle: true,
+        primary: false,
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.notifications),
