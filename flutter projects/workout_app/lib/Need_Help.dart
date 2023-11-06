@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:emailjs/emailjs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 
@@ -93,7 +94,7 @@ class _NeedHelpState extends State<NeedHelp> {
                       );
                     },
                   );
-                  // sendEmail();
+                  sendEmail();
                   clearFields();
                   hideKeyboard(context);
                 } else{
@@ -134,14 +135,18 @@ final messageController = TextEditingController();
 
 
 Future sendEmail() async{
-  const serviceId = "";
-  const templateId = "";
-  const publicKey = "";
-  const privateKey = "";
+
+
+
+  String serviceId = dotenv.get("SERVICE_ID",fallback: "");
+  String templateId = dotenv.get("TEMPLATE_ID",fallback: "");
+  String publicKey = dotenv.get("PUBLIC_KEY",fallback: "");
+  String privateKey = dotenv.get("PRIVATE_KEY",fallback: "");
+
 
 
   print("Sent");
-  print(emailController);
+  print(serviceId);
 
   Map<String, dynamic> templateParams = {
           "name" : nameController.text,
@@ -156,7 +161,7 @@ Future sendEmail() async{
       templateId,
       templateParams,
 
-      const Options(
+       Options(
         publicKey: publicKey,
         privateKey: privateKey,
       ),
