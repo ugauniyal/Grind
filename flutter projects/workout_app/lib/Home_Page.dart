@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:workout_app/Chat_Page.dart';
 import 'package:workout_app/Explore_Page.dart';
 import 'package:workout_app/Gym_Buddy_Page.dart';
+import 'package:workout_app/SettingPage.dart';
 import 'package:workout_app/sideBar.dart';
+import 'package:workout_app/signIO.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({super.key, this.title});
@@ -38,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
     return Scaffold(
+      extendBodyBehindAppBar: false,
 
       drawer: const NavBar(),
       appBar: AppBar(
@@ -51,12 +54,37 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
 
         centerTitle: true,
+        primary: false,
         actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: (){
+          GestureDetector(
+            onTap: (){
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context)=> LoginScreen())
 
-            },)
+              );
+            },
+            child:Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+
+              child: ClipOval(
+                child: Image.network(
+                  'https://m.media-amazon.com/images/S/pv-target-images/eac8b2236c3ad14773975e921a285f1b622de5f3673b36626b0a24e3dfccce37.jpg',
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+
+                ),
+              ),
+            ) ,
+
+          ),
+
+
+          // IconButton(
+          //   icon: const Icon(Icons.notifications),
+          //   onPressed: (){
+          //
+          //   },)
         ],
 
       ),

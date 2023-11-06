@@ -5,64 +5,71 @@ import 'package:workout_app/Gym_Buddy_Page.dart';
 import 'package:workout_app/Home_Page.dart';
 import 'package:workout_app/Splash_Screen.dart';
 import 'package:workout_app/main.dart';
+import 'package:flutter/material.dart';
 
-void main(){
-  runApp(MyApp());
+class Nav extends StatefulWidget {
+  Nav({required Key key}) : super(key: key);
+
+   @override
+  _NavState createState()=> _NavState();
 }
 
-class BottomNavBarLayout extends StatefulWidget {
-  BottomNavBarLayout({required Key key}) : super(key: key);
-  // final String title;
-  // final Widget initialPage;
+class _NavState extends State<Nav> {
 
-  @override
-  _BottomNavBarLayoutState createState() => _BottomNavBarLayoutState();
-}
-
-class _BottomNavBarLayoutState extends State<BottomNavBarLayout> {
+  int _selectedIndex = 0;
   int _currentIndex = 0;
+
+void _onItemTap(int index){
+  setState(() {
+    _selectedIndex = index;
+  });
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-
-        // Add any other app-specific app bar configurations here
-      ),
-      body: _buildPage(_currentIndex),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(0.0),
+          child:
+          AppBar(elevation: 0.0,)
+      )
+      ,
+      body:  _buildPage(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         unselectedLabelStyle: TextStyle(color: Colors.black),
         selectedLabelStyle: TextStyle(color: Colors.black),
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
-        onTap: (int newIndex) {
+          onTap: (int newIndex){
           setState(() {
-            _currentIndex = newIndex;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            label: 'Home',
-            icon: Icon(Icons.home,color: Colors.black),
-          ),
-          BottomNavigationBarItem(
-            label: 'Explore',
-            icon: Icon(Icons.search,color: Colors.black),
-          ),
-          BottomNavigationBarItem(
-            label: 'Gym Buddy',
-            icon: Icon(Icons.handshake,color: Colors.black),
-          ),
-          BottomNavigationBarItem(
-            label: 'Chat',
-            icon: Icon(Icons.chat,color: Colors.black,),
+             _currentIndex = newIndex;
+        });
+          },
 
-          ),
-        ],
+          items: const [
+            BottomNavigationBarItem(
+              label: 'Home',
+              icon: Icon(Icons.home,color: Colors.black),
+            ),
+            BottomNavigationBarItem(
+              label: 'Explore',
+              icon: Icon(Icons.search,color: Colors.black),
+            ),
+            BottomNavigationBarItem(
+              label: 'Gym Buddy',
+              icon: Icon(Icons.handshake,color: Colors.black),
+            ),
+            BottomNavigationBarItem(
+              label: 'Chat',
+              icon: Icon(Icons.chat,color: Colors.black,),
+
+            ),
+          ],
+
+
       ),
     );
   }
-
   Widget _buildPage(int index) {
     switch (index) {
 
@@ -80,3 +87,5 @@ class _BottomNavBarLayoutState extends State<BottomNavBarLayout> {
     }
   }
 }
+
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:workout_app/Need_Help.dart';
+import 'package:workout_app/SettingPage.dart';
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});
@@ -54,7 +55,12 @@ class NavBar extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.settings),
             title: Text('Settings'),
-            onTap: () => Null,
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context)=>SettingsOnePage())
+
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.help),
