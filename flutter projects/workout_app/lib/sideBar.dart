@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:workout_app/Gym_Buddies_List.dart';
 import 'package:workout_app/Need_Help.dart';
 import 'package:workout_app/SettingPage.dart';
 
@@ -31,21 +32,12 @@ class NavBar extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.people),
             title: Text('Gym Buddies'),
-            onTap: () => Null,
-          ),
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text('New Requests'),
-            onTap: () => Null,
-            trailing: Container(
-              child: Text(
-                '3',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 13,
-                ),
-              ),
-            ),
+            onTap: (){
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context)=>GymBuddies())
+
+              );
+            }
           ),
           ListTile(
             leading: Icon(Icons.settings),
