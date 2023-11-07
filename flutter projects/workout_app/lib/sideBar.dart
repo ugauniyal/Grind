@@ -29,11 +29,6 @@ class NavBar extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: Icon(Icons.save),
-            title: Text('Saved'),
-            onTap: () => Null,
-          ),
-          ListTile(
             leading: Icon(Icons.people),
             title: Text('Gym Buddies'),
             onTap: () => Null,

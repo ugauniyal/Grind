@@ -9,7 +9,7 @@ import 'package:workout_app/Splash_Screen.dart';
 
 
 void main () async{
-  await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: "assets/.env");
 
 
   runApp(const MyApp());

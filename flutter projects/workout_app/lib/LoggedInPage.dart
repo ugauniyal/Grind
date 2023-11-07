@@ -1,14 +1,26 @@
 
 import 'package:flutter/material.dart';
+import 'package:workout_app/EditProfilePage.dart';
 
 class LoggedInPage  extends StatefulWidget {
-  const LoggedInPage ({super.key});
+  const LoggedInPage ({Key? key});
 
   @override
   State<LoggedInPage> createState() => _LoggedInPage();
 }
 
 class _LoggedInPage extends State<LoggedInPage> {
+
+  String name = "Tun Tun";
+  String email = "tuntun@gmail.com";
+
+  void handleProfileUpdate(String newName, String newEmail) {
+    setState(() {
+      name = newName;
+      email = newEmail;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,17 +54,23 @@ class _LoggedInPage extends State<LoggedInPage> {
           ),
           SizedBox(height: 10),
           Text(
-            "Tun Tun",
+            name,
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
           ),
           SizedBox(height: 5),
           Text(
-            "tuntun@gmail.com",
+            email,
             style: TextStyle(fontSize: 16, color: Colors.black),
           ),
           SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context)=>EditProfilePage())
+
+              );
+
+            },
             style: ElevatedButton.styleFrom(
               primary: Colors.black, // Set button color to black
             ),
@@ -62,16 +80,17 @@ class _LoggedInPage extends State<LoggedInPage> {
             ),
           ),
           SizedBox(height: 20,),
-          Text(
-            "Saved Content",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300, color: Colors.black),
+          ListTile(
+            leading: Icon(Icons.save),
+            title: Text('Saved'),
+            onTap: () => Null,
           ),
 
           SizedBox(height: 10),
         ],
-        
+
       ),
-      
+
     )
 
 
