@@ -1,27 +1,27 @@
 
 
-import 'dart:convert';
 import 'package:emailjs/emailjs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
 
 
 
 
-import 'package:flutter/material.dart';
 
 class NeedHelp extends StatefulWidget {
+  const NeedHelp({super.key});
+
   @override
   State<NeedHelp> createState() => _NeedHelpState();
 }
 
+final TextEditingController nameInputController = TextEditingController();
+final TextEditingController emailInputController = TextEditingController();
+final TextEditingController messageInputController = TextEditingController();
+final TextEditingController subjectInputController = TextEditingController();
+
 class _NeedHelpState extends State<NeedHelp> {
-  final TextEditingController nameInputController = TextEditingController();
 
-  final TextEditingController emailInputController = TextEditingController();
-
-  final TextEditingController messageInputController = TextEditingController();
 
   void clearFields() {
     nameInputController.clear();
@@ -37,35 +37,41 @@ class _NeedHelpState extends State<NeedHelp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Give Us Your Query'),
+        title: const Text('Give Us Your Query'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: nameInputController,
-              decoration: InputDecoration(labelText: 'Name'),
+              decoration: const InputDecoration(labelText: 'Name'),
 
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
-                controller: emailInputController,
-                decoration: InputDecoration(labelText: 'Email'),
-                keyboardType: TextInputType.emailAddress,
+              controller: emailInputController,
+              decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
 
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
+            TextField(
+              controller: subjectInputController,
+              decoration: const InputDecoration(labelText: 'Subject'),
+
+            ),
+            const SizedBox(height: 16.0),
             TextField(
               controller: messageInputController,
-              decoration: InputDecoration(labelText: 'Your Query'),
+              decoration: const InputDecoration(labelText: 'Your Query'),
               maxLines: 3,
 
             ),
-            SizedBox(height: 32.0),
+            const SizedBox(height: 32.0),
             ElevatedButton(
               onPressed:
-                () {
+                  () {
 
                 if(nameInputController.text.isNotEmpty &&
                     emailInputController.text.isNotEmpty &&
@@ -79,8 +85,8 @@ class _NeedHelpState extends State<NeedHelp> {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: Text('Thank you!'),
-                        content: Text('Your Query has been sent.'),
+                        title: const Text('Thank you!'),
+                        content: const Text('Your Query has been sent.'),
                         actions: [
                           TextButton(
                             onPressed: () {
@@ -88,7 +94,7 @@ class _NeedHelpState extends State<NeedHelp> {
                               Navigator.pop(context);
 
                             },
-                            child: Text('OK'),
+                            child: const Text('OK'),
                           ),
                         ],
                       );
@@ -100,24 +106,24 @@ class _NeedHelpState extends State<NeedHelp> {
                 } else{
                   showDialog(context: context,
                     builder: (BuildContext context){
-                    return AlertDialog(
-                      title: Text('Error'),
-                      content: Text('Please fill all the details'),
-                      actions: [
-                        TextButton(onPressed: (){
-                          Navigator.pop(context);
-                        }, child: Text('Okay')
-                        )
-                      ],
-                    );
-                  },
+                      return AlertDialog(
+                        title: const Text('Error'),
+                        content: const Text('Please fill all the details'),
+                        actions: [
+                          TextButton(onPressed: (){
+                            Navigator.pop(context);
+                          }, child: const Text('Okay')
+                          )
+                        ],
+                      );
+                    },
                   );
                 }
 
 
-                },
+              },
 
-              child: Text('Submit'),
+              child: const Text('Submit'),
             ),
           ],
         ),
@@ -128,15 +134,7 @@ class _NeedHelpState extends State<NeedHelp> {
 
 
 
-final nameController = TextEditingController();
-final subjectController = TextEditingController();
-final emailController = TextEditingController();
-final messageController = TextEditingController();
-
-
 Future sendEmail() async{
-
-
 
   String serviceId = dotenv.get("SERVICE_ID",fallback: "");
   String templateId = dotenv.get("TEMPLATE_ID",fallback: "");
@@ -146,13 +144,12 @@ Future sendEmail() async{
 
 
   print("Sent");
-  print(serviceId);
 
   Map<String, dynamic> templateParams = {
-          "name" : nameController.text,
-          "subject": subjectController.text,
-          "message": messageController.text,
-          "user_email": emailController.text,
+    "name" : nameInputController.text,
+    "subject": subjectInputController.text,
+    "message": messageInputController.text,
+    "user_email": emailInputController.text,
   };
 
   try {
@@ -161,7 +158,7 @@ Future sendEmail() async{
       templateId,
       templateParams,
 
-       Options(
+      Options(
         publicKey: publicKey,
         privateKey: privateKey,
       ),
