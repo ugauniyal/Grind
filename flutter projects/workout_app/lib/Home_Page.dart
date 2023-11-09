@@ -1,10 +1,4 @@
-
-
 import 'package:flutter/material.dart';
-import 'package:workout_app/Chat_Page.dart';
-import 'package:workout_app/Explore_Page.dart';
-import 'package:workout_app/Gym_Buddy_Page.dart';
-import 'package:workout_app/SettingPage.dart';
 import 'package:workout_app/sideBar.dart';
 import 'package:workout_app/signIO.dart';
 
@@ -21,64 +15,44 @@ class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   int currentIndex1 = 0;
 
-
-
-
   List<Widget> gymPhotos = [
     Image.asset('assets/images/gym1.jpg'),
     Image.asset('assets/images/gym2.jpg'),
     Image.asset('assets/images/gym3.jpg')
   ];
 
-
-
-
-
-
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       extendBodyBehindAppBar: false,
-
       drawer: const NavBar(),
       appBar: AppBar(
-
         backgroundColor: Colors.white,
         elevation: 0.0,
-
-          title: Container(
-            padding: EdgeInsets.zero,
-            child: Text('Grind', style: TextStyle(fontSize: 30)),
-          ),
-
+        title: Container(
+          padding: EdgeInsets.zero,
+          child: Text('Grind', style: TextStyle(fontSize: 30)),
+        ),
         centerTitle: true,
         primary: false,
         actions: <Widget>[
           GestureDetector(
-            onTap: (){
+            onTap: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context)=> LoginScreen())
-
-              );
+                  MaterialPageRoute(builder: (context) => LoginScreen()));
             },
-            child:Padding(
+            child: Padding(
               padding: const EdgeInsets.only(right: 10.0),
-
               child: ClipOval(
                 child: Image.network(
                   'https://m.media-amazon.com/images/S/pv-target-images/eac8b2236c3ad14773975e921a285f1b622de5f3673b36626b0a24e3dfccce37.jpg',
                   width: 40,
                   height: 40,
                   fit: BoxFit.cover,
-
                 ),
               ),
-            ) ,
-
+            ),
           ),
-
 
           // IconButton(
           //   icon: const Icon(Icons.notifications),
@@ -86,7 +60,6 @@ class _MyHomePageState extends State<MyHomePage> {
           //
           //   },)
         ],
-
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -107,9 +80,10 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const Padding(
               padding: EdgeInsets.all(9.0),
-              child: Text("Explore nearby gyms",style: TextStyle(
-                  fontSize: 20
-              ),),
+              child: Text(
+                "Explore nearby gyms",
+                style: TextStyle(fontSize: 20),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -125,16 +99,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
             ),
-
-
           ],
         ),
-
       ),
-
-
     );
-
-
   }
 }
