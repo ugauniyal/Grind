@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 
 class ExplorePage extends StatelessWidget {
   const ExplorePage({Key? key});
@@ -268,46 +266,47 @@ class ExplorePage extends StatelessWidget {
                   ],
                 ),
                 child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => YoutubePlayer(
-                          controller: YoutubePlayerController(
-                            initialVideoId: 'VIE-NMeYAoU', // Replace with your video ID
-                            flags: YoutubePlayerFlags(
-                              autoPlay: true,
-                              mute: false,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => YoutubePlayer(
+                            controller: YoutubePlayerController(
+                              initialVideoId:
+                                  'VIE-NMeYAoU', // Replace with your video ID
+                              flags: YoutubePlayerFlags(
+                                autoPlay: true,
+                                mute: false,
+                              ),
                             ),
+                            showVideoProgressIndicator: true,
+                            progressIndicatorColor: Colors.blueAccent,
                           ),
-                          showVideoProgressIndicator: true,
-                          progressIndicatorColor: Colors.blueAccent,
                         ),
-                      ),
-                    );
-                  },
-
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.network(
-                        'https://img.youtube.com/vi/VIE-NMeYAoU/hqdefault.jpg',
-                        fit: BoxFit.cover,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(height: 8,),
-                          Text(
-                            'Previously Viewed',
-                            style: TextStyle(color: Colors.white, fontSize: 14),
-                          ),
-                        ],
-                      )
-                    ],
-                  )
-
-                ),
+                      );
+                    },
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(
+                          'https://img.youtube.com/vi/VIE-NMeYAoU/hqdefault.jpg',
+                          fit: BoxFit.cover,
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: 8,
+                            ),
+                            Text(
+                              'Previously Viewed',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 14),
+                            ),
+                          ],
+                        )
+                      ],
+                    )),
               ),
             )
           ],

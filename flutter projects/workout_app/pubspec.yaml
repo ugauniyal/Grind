@@ -96,7 +96,14 @@ flutter:
   fonts:
     - family: FontName
       fonts:
-        - asset: assets/Fonts/SometypeMono-SemiBold.ttf
+        - asset:
+            assets/Fonts/SometypeMono-SemiBold.ttf
+
+    - family: TextFamily
+      fonts:
+        - asset:
+            assets/Fonts/SourceSans3-Light.ttf
+
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro

@@ -12,14 +12,7 @@ class Nav extends StatefulWidget {
 }
 
 class _NavState extends State<Nav> {
-  int _selectedIndex = 0;
   int _currentIndex = 0;
-
-  void _onItemTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +25,9 @@ class _NavState extends State<Nav> {
       body: _buildPage(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         unselectedLabelStyle: TextStyle(color: Colors.black),
-        selectedLabelStyle: TextStyle(color: Colors.black),
+        selectedLabelStyle: TextStyle(color: Colors.red),
         type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.red,
         currentIndex: _currentIndex,
         onTap: (int newIndex) {
           setState(() {

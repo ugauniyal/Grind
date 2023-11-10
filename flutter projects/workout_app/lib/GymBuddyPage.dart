@@ -108,8 +108,7 @@ class _SwipeCardState extends State<SwipeCard> {
                   style: ElevatedButton.styleFrom(
                     primary: Colors.red, // Background color
                     onPrimary: Colors.white, // Text color
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10), // Padding
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10), // Border radius
                     ),
