@@ -6,11 +6,14 @@ class User {
   final String imageUrl;
   bool isFollowed;
 
+  int? age;
+
   User({
     required this.name,
     required this.username,
     required this.imageUrl,
     required this.isFollowed,
+    this.age,
   });
 }
 

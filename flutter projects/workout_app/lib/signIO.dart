@@ -14,14 +14,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = false;
   bool _showPassword = false;
 
-  void _signIn() {
-    String username = _usernameController.text;
-    String password = _passwordController.text;
-
-    // Add your sign-in logic here
-    // For example, you can use FirebaseAuth, API calls, etc.
-  }
-
   void _signInWithGoogle() {
     // Add Google sign-in logic here
   }
@@ -42,49 +34,48 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Sign In",style: TextStyle(
-              fontSize: 24.0,
-              fontWeight: FontWeight.bold,
-            ),),
+            Text(
+              "Sign In",
+              style: TextStyle(
+                fontSize: 24.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             SizedBox(height: 16.0),
-
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
-                labelText: 'Username',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
-                contentPadding: EdgeInsets.all(12.0)
-              ),
+                  labelText: 'Username',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  contentPadding: EdgeInsets.all(12.0)),
             ),
             SizedBox(height: 16.0),
             TextField(
               controller: _passwordController,
               obscureText: !_showPassword,
               decoration: InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
-                contentPadding: EdgeInsets.all(12.0),
-                suffixIcon: IconButton(
-                  onPressed: (){
-                    setState(() {
-                      _showPassword = !_showPassword;
-                    });
-                  }, icon: Icon(
-                  _showPassword ? Icons.visibility : Icons.visibility_off,
-                  color: Colors.grey,
-
-                ),
-                )
-              ),
-
+                  labelText: 'Password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  contentPadding: EdgeInsets.all(12.0),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
+                    icon: Icon(
+                      _showPassword ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.grey,
+                    ),
+                  )),
             ),
             SizedBox(height: 16.0),
             Row(
@@ -121,15 +112,14 @@ class _LoginScreenState extends State<LoginScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context)=>LoggedInPage())
-
-                  );
+                      MaterialPageRoute(builder: (context) => LoggedInPage()));
                   // Add the logic for "Log In" here
                 },
                 style: ElevatedButton.styleFrom(
                   primary: Colors.blue, // Background color
                   onPrimary: Colors.white, // Text color
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20), // Button padding
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 40, vertical: 20), // Button padding
                   textStyle: TextStyle(
                     fontSize: 24.0, // Text size
                     fontWeight: FontWeight.w500, // Text weight
@@ -138,7 +128,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Text('Log In'),
               ),
             ),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -184,13 +173,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 )
               ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: ElevatedButton(
-                onPressed: _signIn,
-                child: Text('Sign In'),
-              ),
             ),
           ],
         ),

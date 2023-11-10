@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:workout_app/LoggedInPage.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({Key? key});
@@ -85,13 +84,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
               onPressed: saveChanges,
               child: Text(
                 "Save Changes",
-                style: TextStyle(fontSize: 16, color: Colors.white),
+                style: TextStyle(fontSize: 16, color: Colors.black),
               ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              "Saved Content",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300, color: Colors.black),
             ),
           ],
         ),
