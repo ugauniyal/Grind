@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:workout_app/GymProfile.dart';
 import 'package:workout_app/sideBar.dart';
 import 'package:workout_app/signIO.dart';
 
@@ -23,61 +24,70 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        extendBodyBehindAppBar: false,
-        drawer: const NavBar(),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0.0,
-          title: Container(
-            padding: EdgeInsets.zero,
-            child: Text('Grind', style: TextStyle(fontSize: 30)),
-          ),
-          centerTitle: true,
-          primary: false,
-          actions: <Widget>[
-            GestureDetector(
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()));
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(right: 10.0),
-                child: ClipOval(
-                  child: Image.network(
-                    'https://m.media-amazon.com/images/S/pv-target-images/eac8b2236c3ad14773975e921a285f1b622de5f3673b36626b0a24e3dfccce37.jpg',
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover,
-                  ),
+      extendBodyBehindAppBar: false,
+      drawer: const NavBar(),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.0,
+        title: Container(
+          padding: EdgeInsets.zero,
+          child: Text('Grind', style: TextStyle(fontSize: 30)),
+        ),
+        centerTitle: true,
+        primary: false,
+        actions: <Widget>[
+          GestureDetector(
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()));
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+              child: ClipOval(
+                child: Image.network(
+                  'https://m.media-amazon.com/images/S/pv-target-images/eac8b2236c3ad14773975e921a285f1b622de5f3673b36626b0a24e3dfccce37.jpg',
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 200,
-                width: double.infinity,
-                color: Colors.pinkAccent,
-                child: Center(
-                  child: Text(
-                    'Think about this box',
-                    style: TextStyle(fontSize: 24, color: Colors.white),
-                  ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 200,
+              width: double.infinity,
+              color: Colors.pinkAccent,
+              child: Center(
+                child: Text(
+                  'Think about this box',
+                  style: TextStyle(fontSize: 24, color: Colors.white),
                 ),
               ),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      // Navigate to the new page when the card is tapped
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => GymDetailsPage(index + 1)),
+                      );
+                    },
                     child: Card(
                       elevation: 5,
-                      color: Colors.white, // Set the color of the Card
+                      color: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -93,7 +103,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                 borderRadius: BorderRadius.circular(16.0),
                                 color: Colors.white,
                               ),
-                              // Set the color of the Container
                               child: gymPhotos[index],
                             ),
                           ),
@@ -143,15 +152,27 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ),
                           ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Icon(
+                                Icons.arrow_forward,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  );
-                },
-                itemCount: gymPhotos.length,
-              ),
-            ],
-          ),
-        ));
+                  ),
+                );
+              },
+              itemCount: gymPhotos.length,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
