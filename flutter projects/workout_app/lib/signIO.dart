@@ -1,3 +1,5 @@
+import 'dart:js';
+
 import 'package:flutter/material.dart';
 import 'package:workout_app/LoggedInPage.dart';
 
@@ -23,7 +25,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+
   Widget build(BuildContext context) {
+
+    void _showSnackbar(String message) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
@@ -34,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               "Sign In",
               style: TextStyle(
                 fontSize: 24.0,
@@ -44,20 +57,25 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(height: 16.0),
             TextField(
               controller: _usernameController,
+              cursorColor: Colors.black,
               decoration: InputDecoration(
+                labelStyle: TextStyle(color: Colors.black),
                   labelText: 'Username',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   filled: true,
+                  focusColor: Colors.black,
                   fillColor: Colors.grey[200],
                   contentPadding: EdgeInsets.all(12.0)),
             ),
             SizedBox(height: 16.0),
             TextField(
+              cursorColor: Colors.black,
               controller: _passwordController,
               obscureText: !_showPassword,
               decoration: InputDecoration(
+                  labelStyle: TextStyle(color: Colors.black),
                   labelText: 'Password',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -84,6 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   children: [
                     Checkbox(
+                      checkColor: Colors.black,
                       value: _rememberMe,
                       onChanged: (value) {
                         setState(() {
@@ -98,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     // Add the logic for "Forgot Password?" here
                   },
-                  child: Text(
+                  child: const Text(
                     'Forgot Password?',
                     style: TextStyle(
                       color: Colors.blue,
@@ -111,30 +130,37 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(15.0),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => LoggedInPage()));
+                  if (_passwordController.text.isEmpty) {
+                    _showSnackbar('Please enter login details');
+                  } else {
+                    // Add your login logic here
+                    _showSnackbar('Logged In');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoggedInPage()),
+                    );
+                  }
                   // Add the logic for "Log In" here
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.blue, // Background color
-                  onPrimary: Colors.white, // Text color
-                  padding: EdgeInsets.symmetric(
+                  foregroundColor: Colors.white, backgroundColor: Colors.blue, // Text color
+                  padding: const EdgeInsets.symmetric(
                       horizontal: 40, vertical: 20), // Button padding
-                  textStyle: TextStyle(
+                  textStyle: const TextStyle(
                     fontSize: 24.0, // Text size
                     fontWeight: FontWeight.w500, // Text weight
                   ),
                 ),
-                child: Text('Log In'),
+                child: Text('Login'),
               ),
             ),
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(8.0),
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: EdgeInsets.all(8.0),
                     child: Text(
                       "Or Sign In With",
                       style: TextStyle(
@@ -162,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                SizedBox(width: 16.0),
+                const SizedBox(width: 16.0),
                 InkWell(
                   onTap: _signInWithFacebook,
                   child: Image.network(

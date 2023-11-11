@@ -3,6 +3,23 @@ import 'package:workout_app/GymProfile.dart';
 import 'package:workout_app/sideBar.dart';
 import 'package:workout_app/signIO.dart';
 
+
+// Function to determine the star color based on the rating
+Color _getStarColor(double rating) {
+  if (rating >= 4.0) {
+    return Colors.green;
+  }
+  else if (rating >= 3.0 && rating < 4.0) {
+    return Colors.lightGreen;
+  }
+  else if (rating >= 2.0 && rating < 3.0) {
+    return Colors.yellow;
+  } else {
+    return Colors.red;
+  }
+}
+
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({super.key, this.title});
 
@@ -14,6 +31,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int currentIndex1 = 0;
+  double rating = 3.2;
 
   List<Widget> gymPhotos = [
     Image.asset('assets/images/gym1.jpg'),
@@ -86,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       );
                     },
                     child: Card(
-                      elevation: 5,
+                      elevation: 10,
                       color: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -109,12 +127,43 @@ class _MyHomePageState extends State<MyHomePage> {
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 10, top: 8, bottom: 6.0),
-                            child: Text(
-                              'Gym ${index + 1}',
-                              style: TextStyle(
-                                  fontSize: 24,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold),
+
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Gym ${index + 1}", style: TextStyle(fontFamily: "TextName", fontWeight: FontWeight.bold, fontSize: 18)),
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: _getStarColor(rating), borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(left: 8.0),
+                                            child: Icon(Icons.star, color: Colors.white, size: 20,),
+                                          ),
+                                        ),
+                                        Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(left: 3.0, right: 10.0),
+                                            child: Text(
+                                              rating.toString(), // Replace with actual rating
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w200,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           Padding(
@@ -133,7 +182,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Text(
                               '2 kms away',
                               style: TextStyle(
-                                fontWeight: FontWeight.w200,
+                                fontWeight: FontWeight.bold,
                                 fontSize: 13,
                                 fontFamily: 'TextFamily',
                                 color: Colors.grey,
@@ -148,16 +197,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                                 fontFamily: 'TextFamily',
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Icon(
-                                Icons.arrow_forward,
                                 color: Colors.grey,
                               ),
                             ),
