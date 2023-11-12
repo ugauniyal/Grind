@@ -8,6 +8,8 @@ class SettingsOnePage extends StatefulWidget {
 }
 
 class _SettingsOnePageState extends State<SettingsOnePage> {
+  List<String> interests = [];
+
   bool enableDiscovery = true;
   bool sendReadReceipt = true;
   bool enableDarkMode = true;
@@ -29,6 +31,74 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
   bool menSelected = false;
   bool womenSelected = false;
   bool bothSelected = false;
+
+  bool isInterestExpanded = false;
+
+  Widget _buildInterestsList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: interests.length,
+      itemBuilder: (context, index) {
+        return InterestItem(title: interests[index]);
+      },
+    );
+  }
+
+  Widget _buildAddInterestButton() {
+    return ListTile(
+      title: ElevatedButton(
+        onPressed: () {
+          _showAddInterestDialog(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green, // Change button color
+          foregroundColor: Colors.white, // Change text color
+        ),
+        child: Text("Add Interest"),
+      ),
+    );
+  }
+
+  void _showAddInterestDialog(BuildContext context) {
+    String newInterest = "";
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Add Interest"),
+          content: TextField(
+            onChanged: (value) {
+              newInterest = value;
+            },
+            decoration: InputDecoration(
+              hintText: "Enter your interest",
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  interests.add(newInterest);
+                });
+                Navigator.of(context).pop();
+              },
+              child: Text("Add", style: TextStyle(color: Colors.black)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget _buildDistanceSlider(BuildContext context) {
@@ -245,7 +315,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               CheckboxListTile(
-                                title: Text("Women"),
+                                title: Text("Men"),
                                 value: menSelected,
                                 activeColor: Colors.black,
                                 onChanged: (bool? value) {
@@ -435,12 +505,19 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                       color: Colors.black,
                     ),
                     title: Text("Interests"),
-                    trailing: Icon(Icons.keyboard_arrow_right),
+                    trailing: isInterestExpanded
+                        ? Icon(Icons.keyboard_arrow_down, color: Colors.black)
+                        : Icon(Icons.keyboard_arrow_right, color: Colors.black),
+                    onExpansionChanged: (expanded) {
+                      setState(() {
+                        isInterestExpanded = expanded;
+                      });
+                    },
                     children: <Widget>[
-                      // Additional content for "Interests"
-                      // You can add more widgets as needed
+                      _buildInterestsList(),
+                      _buildAddInterestButton(),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -537,6 +614,20 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class InterestItem extends StatelessWidget {
+  final String title;
+
+  InterestItem({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title),
+      // Customize ListTile as needed
     );
   }
 }

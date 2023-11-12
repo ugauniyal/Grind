@@ -6,9 +6,9 @@
       <excludeFolder url="file://$MODULE_DIR$/flutter projects/workout_app_vscode/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/flutter projects/workout_app_vscode/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/flutter projects/workout_app_vscode/build" />
-      <excludeFolder url="file://$MODULE_DIR$/flutter projects/workout_app/.dart_tool" />
-      <excludeFolder url="file://$MODULE_DIR$/flutter projects/workout_app/.pub" />
-      <excludeFolder url="file://$MODULE_DIR$/flutter projects/workout_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/flutter projects/Grind/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/flutter projects/Grind/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/flutter projects/Grind/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

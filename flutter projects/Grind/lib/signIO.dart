@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:workout_app/LoggedInPage.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -20,6 +20,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _signInWithFacebook() {
     // Add Facebook sign-in logic here
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -45,37 +54,39 @@ class _LoginScreenState extends State<LoginScreen> {
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
-                  labelText: 'Username',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0)),
+                labelText: 'Username',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+                contentPadding: EdgeInsets.all(12.0),
+              ),
             ),
             SizedBox(height: 16.0),
             TextField(
               controller: _passwordController,
               obscureText: !_showPassword,
               decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                labelText: 'Password',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+                contentPadding: EdgeInsets.all(12.0),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _showPassword = !_showPassword;
+                    });
+                  },
+                  icon: Icon(
+                    _showPassword ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.grey,
                   ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _showPassword = !_showPassword;
-                      });
-                    },
-                    icon: Icon(
-                      _showPassword ? Icons.visibility : Icons.visibility_off,
-                      color: Colors.grey,
-                    ),
-                  )),
+                ),
+              ),
             ),
             SizedBox(height: 16.0),
             Row(
@@ -111,8 +122,16 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(15.0),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => LoggedInPage()));
+                  if (_passwordController.text.isEmpty) {
+                    _showSnackbar('Please enter login details');
+                  } else {
+                    // Add your login logic here
+                    _showSnackbar('Login button pressed');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoggedInPage()),
+                    );
+                  }
                   // Add the logic for "Log In" here
                 },
                 style: ElevatedButton.styleFrom(
@@ -125,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontWeight: FontWeight.w500, // Text weight
                   ),
                 ),
-                child: Text('Log In'),
+                child: Text('Login'),
               ),
             ),
             Row(

@@ -40,7 +40,7 @@ class _SwipeCardState extends State<SwipeCard> {
         content: Content(text: _names[i], color: _colors[i]),
         likeAction: () {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("Send Request ${_names[i]}"),
+            content: Text("Request Sent to ${_names[i]}"),
             duration: Duration(milliseconds: 500),
           ));
         },
@@ -66,35 +66,61 @@ class _SwipeCardState extends State<SwipeCard> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text("Find your Gym Buddy"),
+        backgroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Colors.white],
+          ),
+        ),
         child: Column(
           children: [
-            Container(
-              height: 550,
-              child: SwipeCards(
-                matchEngine: _matchEngine,
-                itemBuilder: (BuildContext context, int index) {
-                  return Container(
-                    alignment: Alignment.center,
-                    color: _swipeItems[index].content.color,
-                    child: Text(
-                      _swipeItems[index].content.text,
-                      style: TextStyle(fontSize: 100),
-                    ),
-                  );
-                },
-                onStackFinished: () {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text("Stack Finished"),
-                    duration: Duration(milliseconds: 500),
-                  ));
-                },
-                itemChanged: (SwipeItem item, int index) {
-                  print("item: ${item.content.text}, index: $index");
-                },
-                upSwipeAllowed: false,
-                fillSpace: true,
+            Expanded(
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 20),
+                child: SwipeCards(
+                  matchEngine: _matchEngine,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: _swipeItems[index].content.color,
+                        borderRadius: BorderRadius.circular(15.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 10,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        _swipeItems[index].content.text,
+                        style: TextStyle(
+                          fontSize: 50,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
+                  onStackFinished: () {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text("Stack Finished"),
+                      duration: Duration(milliseconds: 500),
+                    ));
+                  },
+                  itemChanged: (SwipeItem item, int index) {
+                    print("item: ${item.content.text}, index: $index");
+                  },
+                  upSwipeAllowed: false,
+                  fillSpace: true,
+                ),
               ),
             ),
             Row(
@@ -104,29 +130,30 @@ class _SwipeCardState extends State<SwipeCard> {
                   onPressed: () {
                     _matchEngine.currentItem?.nope();
                   },
-                  child: Text("Rejected"),
+                  child: Text("Reject"),
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.red, // Background color
-                    onPrimary: Colors.white, // Text color
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.red, // Text color
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10), // Border radius
+                      borderRadius: BorderRadius.circular(15),
                     ),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    elevation: 5,
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    _matchEngine.currentItem?.superLike();
+                    _matchEngine.currentItem?.like();
                   },
                   child: Text("Send Request"),
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.green, // Background color
-                    onPrimary: Colors.white, // Text color
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10), // Padding
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.green, // Text color
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10), // Border radius
+                      borderRadius: BorderRadius.circular(15),
                     ),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    elevation: 5,
                   ),
                 ),
               ],
@@ -144,7 +171,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Swipe Cards Example',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.deepPurple,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: SwipeCard(),
