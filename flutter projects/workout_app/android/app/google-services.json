@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "861239158601",
+    "project_id": "grind-d848b",
+    "storage_bucket": "grind-d848b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:861239158601:android:7a04965de7e58aa28f9c98",
+        "android_client_info": {
+          "package_name": "com.example.workout_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAM0aJFuFjJULywK2atLjjGOtxG7o4bY2M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

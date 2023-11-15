@@ -1,7 +1,8 @@
-import 'dart:js';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:workout_app/LoggedInPage.dart';
+import 'package:workout_app/SignUpPage.dart';
+
+import 'BottomNagivationBar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,10 +12,42 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _showPassword = false;
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void Login() async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    if (email == "" || password == "") {
+      _showSnackbar('Please enter all the details');
+    } else {
+      try {
+        UserCredential userCredential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(email: email, password: password);
+
+        if (userCredential.user != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Nav()),
+          );
+        }
+      } on FirebaseAuthException catch (ex) {
+        _showSnackbar(ex.code.toString());
+      }
+    }
+  }
 
   void _signInWithGoogle() {
     // Add Google sign-in logic here
@@ -25,18 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
-
   Widget build(BuildContext context) {
-
-    void _showSnackbar(String message) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
@@ -56,10 +78,10 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             SizedBox(height: 16.0),
             TextField(
-              controller: _usernameController,
+              controller: _emailController,
               cursorColor: Colors.black,
               decoration: InputDecoration(
-                labelStyle: TextStyle(color: Colors.black),
+                  labelStyle: TextStyle(color: Colors.black),
                   labelText: 'Username',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -130,20 +152,11 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(15.0),
               child: ElevatedButton(
                 onPressed: () {
-                  if (_passwordController.text.isEmpty) {
-                    _showSnackbar('Please enter login details');
-                  } else {
-                    // Add your login logic here
-                    _showSnackbar('Logged In');
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoggedInPage()),
-                    );
-                  }
-                  // Add the logic for "Log In" here
+                  Login();
                 },
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.blue, // Text color
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue, // Text color
                   padding: const EdgeInsets.symmetric(
                       horizontal: 40, vertical: 20), // Button padding
                   textStyle: const TextStyle(
@@ -153,6 +166,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 child: Text('Login'),
               ),
+            ),
+            const SizedBox(width: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignUpPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green, // Button color
+              ),
+              child: Text('Sign Up'),
             ),
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,

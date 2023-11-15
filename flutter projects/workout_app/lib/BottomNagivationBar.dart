@@ -5,7 +5,7 @@ import 'package:workout_app/GymBuddyPage.dart';
 import 'package:workout_app/Home_Page.dart';
 
 class Nav extends StatefulWidget {
-  Nav({required Key key}) : super(key: key);
+  Nav({Key? key}) : super(key: key);
 
   @override
   _NavState createState() => _NavState();

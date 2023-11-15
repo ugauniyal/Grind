@@ -1,10 +1,25 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:workout_app/Gym_Buddies_List.dart';
 import 'package:workout_app/Need_Help.dart';
 import 'package:workout_app/SettingPage.dart';
+import 'package:workout_app/signIO.dart';
 
-class NavBar extends StatelessWidget {
+class NavBar extends StatefulWidget {
   const NavBar({super.key});
+
+  @override
+  State<NavBar> createState() => _NavBarState();
+}
+
+class _NavBarState extends State<NavBar> {
+  void LogOut() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,8 +28,14 @@ class NavBar extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text('TunTun Mausi',style: TextStyle(color: Colors.black),),
-            accountEmail: Text('tuntunmausiladoos@gmail.com',style: TextStyle(color: Colors.black),),
+            accountName: Text(
+              'TunTun Mausi',
+              style: TextStyle(color: Colors.black),
+            ),
+            accountEmail: Text(
+              'tuntunmausiladoos@gmail.com',
+              style: TextStyle(color: Colors.black),
+            ),
             currentAccountPicture: CircleAvatar(
               child: ClipOval(
                 child: Image.network(
@@ -32,20 +53,20 @@ class NavBar extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.people),
             title: Text('Gym Buddies'),
-            onTap: (){
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context)=>GymBuddies())
-
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => GymBuddies()),
               );
-            }
+            },
           ),
           ListTile(
             leading: Icon(Icons.settings),
             title: Text('Settings'),
             onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context)=>SettingsOnePage())
-
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsOnePage()),
               );
             },
           ),
@@ -53,9 +74,9 @@ class NavBar extends StatelessWidget {
             leading: Icon(Icons.help),
             title: Text('Need help?'),
             onTap: () {
-              Navigator.push(context,
-                MaterialPageRoute(builder: (context)=>NeedHelp())
-
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NeedHelp()),
               );
             },
           ),
@@ -63,10 +84,45 @@ class NavBar extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Log Out'),
-            onTap: () => Null,
+            onTap: () {
+              _showLogoutConfirmationDialog(context);
+            },
           ),
         ],
       ),
+    );
+  }
+
+  void _showLogoutConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Log Out'),
+          content: Text('Are you sure you want to log out?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'No',
+                style: TextStyle(color: Colors.black),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              child: Text('Yes', style: TextStyle(color: Colors.black)),
+              onPressed: () {
+                LogOut();
+                // Perform logout actions here
+                // For example, you can call a function to handle logout
+                // logout();
+                // Close the dialog
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
