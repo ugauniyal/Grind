@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:workout_app/chatDmUI.dart';
 
+import 'BottomNagivationBar.dart';
+
 void main() {
   runApp(ChatPage());
 }
@@ -10,6 +12,11 @@ class ChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          color: Colors.white,
+          onPressed: () => Navigator.push(
+              context, MaterialPageRoute(builder: (context) => Nav())),
+        ),
         title: Text(
           'Contacts',
           style: TextStyle(color: Colors.white),

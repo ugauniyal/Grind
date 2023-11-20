@@ -1,24 +1,23 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:workout_app/Chat_Page.dart';
+import 'package:workout_app/EditProfilePage.dart';
 import 'package:workout_app/GymProfile.dart';
 import 'package:workout_app/sideBar.dart';
 import 'package:workout_app/signIO.dart';
-
 
 // Function to determine the star color based on the rating
 Color _getStarColor(double rating) {
   if (rating >= 4.0) {
     return Colors.green;
-  }
-  else if (rating >= 3.0 && rating < 4.0) {
+  } else if (rating >= 3.0 && rating < 4.0) {
     return Colors.lightGreen;
-  }
-  else if (rating >= 2.0 && rating < 3.0) {
+  } else if (rating >= 2.0 && rating < 3.0) {
     return Colors.yellow;
   } else {
     return Colors.red;
   }
 }
-
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({super.key, this.title});
@@ -40,6 +39,24 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
 
   @override
+  void loginOrProfile(BuildContext context) async {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        print('User is currently signed out!');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      } else {
+        print('User is signed in!');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => EditProfilePage()),
+        );
+      }
+    });
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: false,
@@ -56,17 +73,15 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: <Widget>[
           GestureDetector(
             onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()));
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => ChatPage()));
             },
             child: Padding(
               padding: const EdgeInsets.only(right: 10.0),
               child: ClipOval(
-                child: Image.network(
-                  'https://m.media-amazon.com/images/S/pv-target-images/eac8b2236c3ad14773975e921a285f1b622de5f3673b36626b0a24e3dfccce37.jpg',
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
+                child: Icon(
+                  Icons.chat,
+                  color: Colors.black,
                 ),
               ),
             ),
@@ -77,14 +92,21 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 200,
-              width: double.infinity,
-              color: Colors.pinkAccent,
-              child: Center(
-                child: Text(
-                  'Think about this box',
-                  style: TextStyle(fontSize: 24, color: Colors.white),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.brown,
+                  borderRadius:
+                      BorderRadius.circular(10.0), // Adjust the value as needed
+                ),
+                child: Center(
+                  child: Text(
+                    'Think about this box',
+                    style: TextStyle(fontSize: 24, color: Colors.white),
+                  ),
                 ),
               ),
             ),
@@ -127,30 +149,41 @@ class _MyHomePageState extends State<MyHomePage> {
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 10, top: 8, bottom: 6.0),
-
                             child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text("Gym ${index + 1}", style: TextStyle(fontFamily: "TextName", fontWeight: FontWeight.bold, fontSize: 18)),
+                                Text("Gym ${index + 1}",
+                                    style: TextStyle(
+                                        fontFamily: "TextName",
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18)),
                                 Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: _getStarColor(rating), borderRadius: BorderRadius.circular(5),
+                                      color: _getStarColor(rating),
+                                      borderRadius: BorderRadius.circular(5),
                                     ),
                                     child: Row(
                                       children: [
                                         Center(
                                           child: Padding(
-                                            padding: const EdgeInsets.only(left: 8.0),
-                                            child: Icon(Icons.star, color: Colors.white, size: 20,),
+                                            padding: const EdgeInsets.only(
+                                                left: 8.0),
+                                            child: Icon(
+                                              Icons.star,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
                                           ),
                                         ),
                                         Center(
                                           child: Padding(
-                                            padding: const EdgeInsets.only(left: 3.0, right: 10.0),
+                                            padding: const EdgeInsets.only(
+                                                left: 3.0, right: 10.0),
                                             child: Text(
-                                              rating.toString(), // Replace with actual rating
+                                              rating
+                                                  .toString(), // Replace with actual rating
                                               style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 18,

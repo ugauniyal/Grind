@@ -1,20 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:workout_app/SignUpPage.dart';
+import 'package:workout_app/EditProfilePage.dart';
 
-import 'BottomNagivationBar.dart';
-
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class AuthCheck extends StatefulWidget {
+  const AuthCheck({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<AuthCheck> createState() => _AuthCheckState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _AuthCheckState extends State<AuthCheck> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _rememberMe = false;
   bool _showPassword = false;
 
   void _showSnackbar(String message) {
@@ -40,21 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
         if (userCredential.user != null) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => Nav()),
+            MaterialPageRoute(builder: (context) => EditProfilePage()),
           );
         }
       } on FirebaseAuthException catch (ex) {
         _showSnackbar(ex.code.toString());
       }
     }
-  }
-
-  void _signInWithGoogle() {
-    // Add Google sign-in logic here
-  }
-
-  void _signInWithFacebook() {
-    // Add Facebook sign-in logic here
   }
 
   @override
@@ -118,36 +107,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   )),
             ),
             SizedBox(height: 16.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Checkbox(
-                      checkColor: Colors.black,
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value ?? false;
-                        });
-                      },
-                    ),
-                    Text("Remember Me"),
-                  ],
-                ),
-                TextButton(
-                  onPressed: () {
-                    // Add the logic for "Forgot Password?" here
-                  },
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
-              ],
-            ),
             Padding(
               padding: const EdgeInsets.all(15.0),
               child: ElevatedButton(
@@ -164,22 +123,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontWeight: FontWeight.w500, // Text weight
                   ),
                 ),
-                child: Text('Login'),
+                child: Text('Authenticate'),
               ),
             ),
             const SizedBox(width: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignUpPage()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green, // Button color
-              ),
-              child: Text('Sign Up'),
-            ),
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -202,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 InkWell(
-                  onTap: _signInWithGoogle,
+                  // onTap: _signInWithGoogle,
                   child: CircleAvatar(
                     child: ClipOval(
                       child: Image.network(
@@ -216,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(width: 16.0),
                 InkWell(
-                  onTap: _signInWithFacebook,
+                  // onTap: _signInWithFacebook,
                   child: Image.network(
                     'https://upload.wikimedia.org/wikipedia/commons/6/6c/Facebook_Logo_2023.png',
                     width: 40,
