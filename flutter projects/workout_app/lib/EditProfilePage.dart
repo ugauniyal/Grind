@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_app/BottomNagivationBar.dart';
@@ -15,8 +17,12 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  var nameController = TextEditingController(text: "Tun Tun");
-  var usernameController = TextEditingController(text: 'your_tuntun');
+
+  final user = FirebaseAuth.instance.currentUser;
+
+  var nameController = TextEditingController(text: "");
+  var usernameController = TextEditingController(text: "");
+  var bioController = TextEditingController(text: "");
   var passwordController = TextEditingController();
   var CpasswordController = TextEditingController();
   File? profilePic;
@@ -25,16 +31,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
   bool showNewPassword = false;
   bool showConfirmPassword = false;
 
-  final user = FirebaseAuth.instance.currentUser;
 
-  String name = "Tun Tun";
-  String username = " ";
 
   bool _showPassword = false;
 
   bool isNameChanged = false;
   bool isUsernameChanged = false;
+  bool isBioChanged = false;
   late FocusNode nameFocusNode;
+  late FocusNode usernameFocusNode;
+  late FocusNode bioFocusNode;
 
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -51,39 +57,58 @@ class _EditProfilePageState extends State<EditProfilePage> {
   //   if(currentPassword !=  )
   // }
 
-  void updateName() {
-    setState(() {
-      name = nameController.text.trim();
-      isNameChanged = false; // Reset the flag after updating the name
-      _showSnackbar('Name Updated');
-    });
-    nameFocusNode.unfocus();
+  Future<void> updateName() async {
+    String name = nameController.text.trim();
+
+    if (name != "") {
+      setState(() {
+        isNameChanged = false; // Reset the flag after updating the name
+        _showSnackbar('Name Updated');
+      });
+      nameFocusNode.unfocus();
+
+      String? uid = user?.uid;
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'name': name,
+      });
+    }
     // You can implement additional logic here to update the name in your data storage
+  }
+
+  Future<void> updateBio() async {
+    String bio = bioController.text.trim();
+
+    if (bio != "") {
+      setState(() {
+        isBioChanged = false; // Reset the flag after updating the name
+        _showSnackbar('Bio Updated');
+      });
+      bioFocusNode.unfocus();
+
+      String? uid = user?.uid;
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'bio': bio,
+      });
+    }
   }
 
   void updateUsername() {
-    setState(() {
-      username = usernameController.text.trim();
-      isUsernameChanged = false; // Reset the flag after updating the name
-      _showSnackbar('Username Updated');
-    });
-    nameFocusNode.unfocus();
-    // You can implement additional logic here to update the name in your data storage
+    String username = usernameController.text.trim();
+
+    if (username != "") {
+      setState(() {
+        isUsernameChanged = false; // Reset the flag after updating the name
+        _showSnackbar('Username Updated');
+      });
+      usernameFocusNode.unfocus();
+
+      user?.updateDisplayName(username);
+    }
   }
 
-  // void userData() async{
-  //   if (name != '' && username != "" && profilePic != null) {
-  //     Map<String, dynamic> userData = {
-  //       "name": name,
-  //       "username": username,
-  //     };
-  //     FirebaseFirestore.instance.collection("users").add(userData);
-  //   } else {
-  //     _showSnackbar("fill the details");
-  //   }
-  // }
 
-  @override
   void updateProfilePic() async {
     XFile? selectedImage =
         await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -113,38 +138,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
     // Perform any additional update logic here
     _showSnackbar('Profile Picture Uploaded and Updated');
   }
-  // void saveProfilePic() async {
-  //   XFile? selectedImage =
-  //       await ImagePicker().pickImage(source: ImageSource.gallery);
-  //
-  //   if (selectedImage != null) {
-  //     File convertedFile = File(selectedImage.path);
-  //     setState(() {
-  //       profilePic = convertedFile;
-  //     });
-  //     _showSnackbar('Profile Image Updated');
-  //   } else {
-  //     print("no image selected");
-  //   }
-  //
-  //   UploadTask uploadTask = FirebaseStorage.instance
-  //       .ref()
-  //       .child("ProfilePictures_folder")
-  //       .child(Uuid().v1())
-  //       .putFile(profilePic!);
-  //
-  //   TaskSnapshot taskSnapshot = await uploadTask;
-  //   String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+
   // }
 
   void initState() {
     super.initState();
     nameFocusNode = FocusNode();
+    usernameFocusNode = FocusNode();
+    bioFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     nameFocusNode.dispose(); // Dispose the FocusNode when it's no longer needed
+    usernameFocusNode.dispose();
+    bioFocusNode.dispose();
     super.dispose();
   }
 
@@ -256,7 +264,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       isUsernameChanged = true;
                     });
                   },
-                  focusNode: nameFocusNode,
+                  focusNode: usernameFocusNode,
                   decoration: InputDecoration(
                     labelText: "Username",
                     labelStyle: TextStyle(color: Colors.black),
@@ -273,6 +281,40 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             icon: Icon(Icons.check),
                             onPressed: updateUsername,
                           )
+                        : null,
+                  ),
+                ),
+              ),
+              SizedBox(height: 5),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  cursorColor: Colors.black,
+                  controller: bioController,
+                  onChanged: (value) {
+                    setState(() {
+                      isBioChanged = true;
+                    });
+                  },
+                  focusNode: bioFocusNode,
+                  maxLength: 20,
+                  maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                  decoration: InputDecoration(
+                    labelText: "Bio",
+                    labelStyle: TextStyle(color: Colors.black),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                    focusColor: Colors.black,
+                    suffixIcon: isBioChanged
+                        ? IconButton(
+                      icon: Icon(Icons.check),
+                      onPressed: updateBio,
+                    )
                         : null,
                   ),
                 ),

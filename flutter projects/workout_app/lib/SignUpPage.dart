@@ -16,7 +16,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
+  String? _genderValue = "Select";
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   bool _showPassword = false;
@@ -28,6 +28,10 @@ class _SignUpPageState extends State<SignUpPage> {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  void dropdownCallback(String? selectedValue) {
+
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -74,6 +78,7 @@ class _SignUpPageState extends State<SignUpPage> {
     String username = _userController.text.trim();
     String name = _nameController.text.trim();
     String age = _dobController.text.trim();
+    String? gender = _genderValue;
 
     if (email == "" || password == "" || confirmPassword == "") {
       _showSnackbar('Please enter login details');
@@ -98,7 +103,9 @@ class _SignUpPageState extends State<SignUpPage> {
 
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'name': name,
-          'age': age
+          'age': age,
+          'bio': "",
+          'gender': gender,
           // Add any other user information you want to store
         });
         _showSnackbar("User Created");
@@ -191,6 +198,31 @@ class _SignUpPageState extends State<SignUpPage> {
                   fillColor: Colors.grey[200],
                   contentPadding: EdgeInsets.all(12.0),
                 ),
+              ),
+              SizedBox(height: 16),
+              DropdownButtonFormField(
+                value: _genderValue,
+                items: const [
+                  DropdownMenuItem(child: Text("Select"), value: "Select", enabled: false),
+                  DropdownMenuItem(child: Text("Male"), value: "Male"),
+                  DropdownMenuItem(child: Text("Female"), value: "Female"),
+                ],
+                isExpanded: true,
+                decoration: InputDecoration(
+                    labelStyle: TextStyle(color: Colors.black),
+                    labelText: 'Sex',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    filled: true,
+                    focusColor: Colors.black,
+                    fillColor: Colors.grey[200],
+                    contentPadding: EdgeInsets.all(12.0)),
+                onChanged: (Object? value) {
+                  setState(() {
+                    _genderValue = value as String;
+                  });
+                },
               ),
               SizedBox(height: 16),
               TextField(

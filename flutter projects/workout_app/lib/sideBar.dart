@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:workout_app/Gym_Buddies_List.dart';
@@ -21,9 +22,32 @@ class _NavBarState extends State<NavBar> {
     );
   }
 
+  String bio = '';
+
   User? user = FirebaseAuth.instance.currentUser;
+
+  void fetchBio() async {
+    String uid = user?.uid ?? '';
+    if (uid.isNotEmpty) {
+      try {
+        DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        setState(() {
+          bio = snapshot.data()?['bio'] ?? '';
+        });
+      } catch (e) {
+        print('Error fetching bio: $e');
+      }
+    }
+  }
+
+  void initState() {
+    super.initState();
+    fetchBio(); // Call the function to fetch bio when the widget initializes
+  }
+
   @override
   Widget build(BuildContext context) {
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -34,14 +58,14 @@ class _NavBarState extends State<NavBar> {
               style: TextStyle(color: Colors.black),
             ),
             accountEmail: Text(
-              user?.email ?? 'Default Email',
+              bio.isNotEmpty ? bio : 'Default Bio', // Display bio instead of email
               style: TextStyle(color: Colors.black),
             ),
             currentAccountPicture: CircleAvatar(
               child: ClipOval(
                 child: Image.network(
                   user?.photoURL ??
-                      'https://m.media-amazon.com/images/S/pv-target-images/eac8b2236c3ad14773975e921a285f1b622de5f3673b36626b0a24e3dfccce37.jpg',
+                      'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
                   width: 90,
                   height: 90,
                   fit: BoxFit.cover,

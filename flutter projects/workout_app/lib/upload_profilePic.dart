@@ -19,7 +19,6 @@ class UploadProfilePic extends StatefulWidget {
 class _UploadProfilePicState extends State<UploadProfilePic> {
   File? profilePic;
 
-  @override
   void saveProfilePic() async {
     XFile? selectedImage =
         await ImagePicker().pickImage(source: ImageSource.gallery);

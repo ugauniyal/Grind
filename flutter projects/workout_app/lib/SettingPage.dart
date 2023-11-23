@@ -38,64 +38,64 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
 
   bool isInterestExpanded = false;
 
+  // // var nameController = TextEditingController(text: "Tun Tun");
+  // var emailController = TextEditingController(text: "tuntun@gmail.com");
+  //
+  // // String name = "Tun Tun";
+  // String email = "tuntun@gmail.com";
+  //
   // var nameController = TextEditingController(text: "Tun Tun");
-  var emailController = TextEditingController(text: "tuntun@gmail.com");
-
+  // var currentPasswordController = TextEditingController(text: "mohsin");
+  // var passwordController = TextEditingController(text: "1234");
+  // var CpasswordController = TextEditingController(text: "1234");
+  //
+  // bool showCurrentPassword = false;
+  // bool showNewPassword = false;
+  // bool showConfirmPassword = false;
+  //
+  // final user = FirebaseAuth.instance.currentUser;
+  //
   // String name = "Tun Tun";
-  String email = "tuntun@gmail.com";
-
-  var nameController = TextEditingController(text: "Tun Tun");
-  var currentPasswordController = TextEditingController(text: "mohsin");
-  var passwordController = TextEditingController(text: "1234");
-  var CpasswordController = TextEditingController(text: "1234");
-
-  bool showCurrentPassword = false;
-  bool showNewPassword = false;
-  bool showConfirmPassword = false;
-
-  final user = FirebaseAuth.instance.currentUser;
-
-  String name = "Tun Tun";
-
-  void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void saveChanges() async {
-    setState(() {
-      name = nameController.text;
-    });
-
-    // Implement the logic to save changes here
-    // You can use the updated 'name' and 'email' variables to update your user data
-
-    // Navigate back to the LoggedInPage
-    String currentPassword = currentPasswordController.text.trim();
-    String newPassword = passwordController.text.trim();
-    String ConfirmPassword = CpasswordController.text.trim();
-
-    if (currentPassword != "") {
-      if (newPassword == "" || ConfirmPassword == "") {
-        _showSnackbar('Please enter New Password details');
-      } else if (newPassword != ConfirmPassword) {
-        _showSnackbar('Password does not match');
-      }
-    } else {
-      try {
-        if (user != null) {
-          await user?.updatePassword(newPassword);
-          _showSnackbar('Changes Done');
-        }
-      } on FirebaseAuthException catch (ex) {
-        _showSnackbar(ex.code.toString());
-      }
-    }
-  }
+  //
+  // void _showSnackbar(String message) {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text(message),
+  //       duration: const Duration(seconds: 2),
+  //     ),
+  //   );
+  // }
+  //
+  // void saveChanges() async {
+  //   setState(() {
+  //     name = nameController.text;
+  //   });
+  //
+  //   // Implement the logic to save changes here
+  //   // You can use the updated 'name' and 'email' variables to update your user data
+  //
+  //   // Navigate back to the LoggedInPage
+  //   String currentPassword = currentPasswordController.text.trim();
+  //   String newPassword = passwordController.text.trim();
+  //   String ConfirmPassword = CpasswordController.text.trim();
+  //
+  //   if (currentPassword != "") {
+  //     if (newPassword == "" || ConfirmPassword == "") {
+  //       _showSnackbar('Please enter New Password details');
+  //     } else if (newPassword != ConfirmPassword) {
+  //       _showSnackbar('Password does not match');
+  //     }
+  //   } else {
+  //     try {
+  //       if (user != null) {
+  //         await user?.updatePassword(newPassword);
+  //         _showSnackbar('Changes Done');
+  //       }
+  //     } on FirebaseAuthException catch (ex) {
+  //       _showSnackbar(ex.code.toString());
+  //     }
+  //   }
+  // }
 
   Widget _buildInterestsList() {
     return ListView.builder(
@@ -225,6 +225,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
   }
 
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -255,7 +256,8 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                     ),
                     child: ClipOval(
                       child: Image.network(
-                        'https://m.media-amazon.com/images/S/pv-target-images/eac8b2236c3ad14773975e921a285f1b622de5f3673b36626b0a24e3dfccce37.jpg',
+                        user?.photoURL ??
+                            'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
                         width: 80,
                         height: 80,
                         fit: BoxFit.cover,
