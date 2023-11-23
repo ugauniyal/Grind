@@ -21,6 +21,7 @@ class _NavBarState extends State<NavBar> {
     );
   }
 
+  User? user = FirebaseAuth.instance.currentUser;
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -29,17 +30,18 @@ class _NavBarState extends State<NavBar> {
         children: [
           UserAccountsDrawerHeader(
             accountName: Text(
-              'TunTun Mausi',
+              user?.displayName ?? 'Default Name',
               style: TextStyle(color: Colors.black),
             ),
             accountEmail: Text(
-              'tuntunmausiladoos@gmail.com',
+              user?.email ?? 'Default Email',
               style: TextStyle(color: Colors.black),
             ),
             currentAccountPicture: CircleAvatar(
               child: ClipOval(
                 child: Image.network(
-                  'https://m.media-amazon.com/images/S/pv-target-images/eac8b2236c3ad14773975e921a285f1b622de5f3673b36626b0a24e3dfccce37.jpg',
+                  user?.photoURL ??
+                      'https://m.media-amazon.com/images/S/pv-target-images/eac8b2236c3ad14773975e921a285f1b622de5f3673b36626b0a24e3dfccce37.jpg',
                   width: 90,
                   height: 90,
                   fit: BoxFit.cover,

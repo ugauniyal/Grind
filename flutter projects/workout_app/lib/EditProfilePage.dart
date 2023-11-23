@@ -71,8 +71,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     // You can implement additional logic here to update the name in your data storage
   }
 
+  // void userData() async{
+  //   if (name != '' && username != "" && profilePic != null) {
+  //     Map<String, dynamic> userData = {
+  //       "name": name,
+  //       "username": username,
+  //     };
+  //     FirebaseFirestore.instance.collection("users").add(userData);
+  //   } else {
+  //     _showSnackbar("fill the details");
+  //   }
+  // }
+
   @override
-  void editPicture() async {
+  void updateProfilePic() async {
     XFile? selectedImage =
         await ImagePicker().pickImage(source: ImageSource.gallery);
 
@@ -83,11 +95,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       });
       _showSnackbar('Profile Image Updated');
     } else {
-      print("no image selected");
+      print("No image selected");
+      return;
     }
-  }
 
-  void saveProfilePic() async {
     UploadTask uploadTask = FirebaseStorage.instance
         .ref()
         .child("ProfilePictures_folder")
@@ -96,11 +107,35 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     TaskSnapshot taskSnapshot = await uploadTask;
     String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+    User? user = FirebaseAuth.instance.currentUser;
+    await user?.updatePhotoURL(downloadUrl);
 
-    if (profilePic != null) {
-      Map<String, dynamic> userData = {"profilePic": downloadUrl};
-    }
+    // Perform any additional update logic here
+    _showSnackbar('Profile Picture Uploaded and Updated');
   }
+  // void saveProfilePic() async {
+  //   XFile? selectedImage =
+  //       await ImagePicker().pickImage(source: ImageSource.gallery);
+  //
+  //   if (selectedImage != null) {
+  //     File convertedFile = File(selectedImage.path);
+  //     setState(() {
+  //       profilePic = convertedFile;
+  //     });
+  //     _showSnackbar('Profile Image Updated');
+  //   } else {
+  //     print("no image selected");
+  //   }
+  //
+  //   UploadTask uploadTask = FirebaseStorage.instance
+  //       .ref()
+  //       .child("ProfilePictures_folder")
+  //       .child(Uuid().v1())
+  //       .putFile(profilePic!);
+  //
+  //   TaskSnapshot taskSnapshot = await uploadTask;
+  //   String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+  // }
 
   void initState() {
     super.initState();
@@ -166,7 +201,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 height: 10,
               ),
               TextButton(
-                onPressed: editPicture,
+                onPressed: updateProfilePic,
                 child: Text(
                   "Edit Profile Picture",
                   style: TextStyle(fontSize: 14, color: Colors.blue),

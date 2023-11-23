@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class User {
+class Buddy {
   final String name;
   final String username;
   final String imageUrl;
@@ -8,7 +8,7 @@ class User {
 
   int? age;
 
-  User({
+  Buddy({
     required this.name,
     required this.username,
     required this.imageUrl,
@@ -25,50 +25,50 @@ class GymBuddies extends StatefulWidget {
 }
 
 class _GymBuddiesState extends State<GymBuddies> {
-  List<User> friendRequests = [
-    User(
+  List<Buddy> friendRequests = [
+    Buddy(
       name: 'ronaldo',
       username: 'Cristiano Ronaldo',
       imageUrl:
-      "https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg",
+          "https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg",
       isFollowed: false,
     ),
-    User(
+    Buddy(
       name: 'virat.kohli',
       username: 'Virat Kohli',
       imageUrl:
-      "https://cdn.images.express.co.uk/img/dynamic/68/590x/Virat-Kohli-India-cricket-star-927773.jpg?r=1686998680160",
+          "https://cdn.images.express.co.uk/img/dynamic/68/590x/Virat-Kohli-India-cricket-star-927773.jpg?r=1686998680160",
       isFollowed: false,
     ),
   ];
 
-  List<User> followersList = [
-    User(
+  List<Buddy> followersList = [
+    Buddy(
       name: 'virat.kohli',
       username: 'Virat Kohli',
       imageUrl:
-      "https://cdn.images.express.co.uk/img/dynamic/68/590x/Virat-Kohli-India-cricket-star-927773.jpg?r=1686998680160",
+          "https://cdn.images.express.co.uk/img/dynamic/68/590x/Virat-Kohli-India-cricket-star-927773.jpg?r=1686998680160",
       isFollowed: false,
     ),
-    User(
+    Buddy(
       name: 'steve_smith',
       username: 'Steve Smith',
       imageUrl:
-      "https://staticg.sportskeeda.com/editor/2023/02/4a3c6-16766121781745-1920.jpg",
+          "https://staticg.sportskeeda.com/editor/2023/02/4a3c6-16766121781745-1920.jpg",
       isFollowed: false,
     ),
-    User(
+    Buddy(
       name: 'leomessi',
       username: 'Leo Messi',
       imageUrl:
-      "https://img.olympicchannel.com/images/image/private/t_s_w960/t_s_16_9_g_auto/f_auto/primary/wq4l6w3ftzn6gequts2v",
+          "https://img.olympicchannel.com/images/image/private/t_s_w960/t_s_16_9_g_auto/f_auto/primary/wq4l6w3ftzn6gequts2v",
       isFollowed: false,
     ),
-    User(
+    Buddy(
       name: 'ronaldo',
       username: 'Cristiano Ronaldo',
       imageUrl:
-      "https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg",
+          "https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg",
       isFollowed: false,
     ),
   ];
@@ -107,7 +107,7 @@ class _GymBuddiesState extends State<GymBuddies> {
               child: ListView.builder(
                 itemCount: friendRequests.length,
                 itemBuilder: (context, index) {
-                  User user = friendRequests[index];
+                  Buddy user = friendRequests[index];
                   return friendRequestItem(user);
                 },
               ),
@@ -135,7 +135,7 @@ class _GymBuddiesState extends State<GymBuddies> {
               child: ListView.builder(
                 itemCount: followersList.length,
                 itemBuilder: (context, index) {
-                  User user = followersList[index];
+                  Buddy user = followersList[index];
                   return followerItem(user);
                 },
               ),
@@ -146,7 +146,7 @@ class _GymBuddiesState extends State<GymBuddies> {
     );
   }
 
-  friendRequestItem(User user) {
+  friendRequestItem(Buddy user) {
     return Container(
       padding: const EdgeInsets.only(top: 10, bottom: 10),
       child: Row(
@@ -222,7 +222,7 @@ class _GymBuddiesState extends State<GymBuddies> {
     );
   }
 
-  followerItem(User user) {
+  followerItem(Buddy user) {
     return Container(
       padding: const EdgeInsets.only(top: 10, bottom: 10),
       child: Row(

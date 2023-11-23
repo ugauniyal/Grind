@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:workout_app/Explore_Page.dart';
 import 'package:workout_app/GymBuddyPage.dart';
 import 'package:workout_app/Home_Page.dart';
+
+import 'Explore_Page.dart';
 
 class Nav extends StatefulWidget {
   Nav({Key? key}) : super(key: key);

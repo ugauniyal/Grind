@@ -47,36 +47,35 @@ class DefaultFirebaseOptions {
   static FirebaseOptions web = FirebaseOptions(
     apiKey: dotenv.get("API_KEY_WEB", fallback: ""),
     appId: dotenv.get("APP_ID_WEB", fallback: ""),
-    messagingSenderId: '861239158601',
-    projectId: 'grind-d848b',
-    authDomain: 'grind-d848b.firebaseapp.com',
-    storageBucket: 'grind-d848b.appspot.com',
-    measurementId: 'G-4SWLHEPKL3',
+    messagingSenderId: '700620630729',
+    projectId: 'grind-a51f8',
+    authDomain: 'grind-a51f8.firebaseapp.com',
+    storageBucket: 'grind-a51f8.appspot.com',
   );
 
   static FirebaseOptions android = FirebaseOptions(
     apiKey: dotenv.get("API_KEY_ANDROID", fallback: ""),
     appId: dotenv.get("API_ID_ANDROID", fallback: ""),
-    messagingSenderId: '861239158601',
-    projectId: 'grind-d848b',
-    storageBucket: 'grind-d848b.appspot.com',
+    messagingSenderId: '700620630729',
+    projectId: 'grind-a51f8',
+    storageBucket: 'grind-a51f8.appspot.com',
   );
 
   static FirebaseOptions ios = FirebaseOptions(
     apiKey: dotenv.get("API_KEY_IOS", fallback: ""),
     appId: dotenv.get("API_ID_IOS", fallback: ""),
-    messagingSenderId: '861239158601',
-    projectId: 'grind-d848b',
-    storageBucket: 'grind-d848b.appspot.com',
+    messagingSenderId: '700620630729',
+    projectId: 'grind-a51f8',
+    storageBucket: 'grind-a51f8.appspot.com',
     iosBundleId: 'com.example.workoutApp',
   );
 
   static FirebaseOptions macos = FirebaseOptions(
     apiKey: dotenv.get("API_KEY_MACOS", fallback: ""),
     appId: dotenv.get("API_ID_MACOS", fallback: ""),
-    messagingSenderId: '861239158601',
-    projectId: 'grind-d848b',
-    storageBucket: 'grind-d848b.appspot.com',
+    messagingSenderId: '700620630729',
+    projectId: 'grind-a51f8',
+    storageBucket: 'grind-a51f8.appspot.com',
     iosBundleId: 'com.example.workoutApp.RunnerTests',
   );
 }

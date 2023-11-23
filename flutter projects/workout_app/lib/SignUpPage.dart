@@ -1,6 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:workout_app/signIO.dart';
+import 'package:workout_app/upload_profilePic.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -12,6 +13,10 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _userController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   bool _showPassword = false;
@@ -25,11 +30,50 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: Colors.black, // Set the color of the OK button
+            hintColor: Colors.black, // Set the color of the selected date
+            colorScheme: ColorScheme.light(
+                primary:
+                    Colors.black), // Set the color of the selected date text
+            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != DateTime.now()) {
+      setState(() {
+        _dobController.text = picked.toLocal().toString().split(' ')[0];
+      });
+    }
+  }
+
+  String? _validateDOB(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Date of Birth is required';
+    }
+    // Add additional validation logic if needed
+    return null;
+  }
+
   void createAccount() async {
     // Implement your sign-up logic here
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
+    String username = _userController.text.trim();
+    String name = _nameController.text.trim();
+    String age = _dobController.text.trim();
 
     if (email == "" || password == "" || confirmPassword == "") {
       _showSnackbar('Please enter login details');
@@ -39,11 +83,44 @@ class _SignUpPageState extends State<SignUpPage> {
       try {
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
-        _showSnackbar('User Created');
+
+        // Set the display name for the user
+        await userCredential.user!.updateDisplayName(username);
+
+        // Reload the user to get the updated information
+        await userCredential.user!.reload();
+
+        // Access the updated display name
+        String displayName =
+            userCredential.user!.displayName ?? 'Default Display Name';
+        print('User Display Name: $displayName');
+        String? uid = userCredential.user?.uid;
+
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'name': name,
+          'age': age
+          // Add any other user information you want to store
+        });
+        _showSnackbar("User Created");
+
         if (userCredential.user != null) {
+          try {
+            UserCredential userCredential = await FirebaseAuth.instance
+                .signInWithEmailAndPassword(email: email, password: password);
+
+            if (userCredential.user == null) {
+              _showSnackbar("Error while signUp");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SignUpPage()),
+              );
+            }
+          } on FirebaseAuthException catch (ex) {
+            _showSnackbar(ex.code.toString());
+          }
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
+            MaterialPageRoute(builder: (context) => UploadProfilePic()),
           );
         }
       } on FirebaseAuthException catch (ex) {
@@ -68,11 +145,60 @@ class _SignUpPageState extends State<SignUpPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextField(
-                controller: _emailController,
+                controller: _nameController,
+                cursorColor: Colors.black,
+                decoration: InputDecoration(
+                    labelStyle: TextStyle(color: Colors.black),
+                    labelText: 'Name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    filled: true,
+                    focusColor: Colors.black,
+                    fillColor: Colors.grey[200],
+                    contentPadding: EdgeInsets.all(12.0)),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _userController,
                 cursorColor: Colors.black,
                 decoration: InputDecoration(
                     labelStyle: TextStyle(color: Colors.black),
                     labelText: 'Username',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    filled: true,
+                    focusColor: Colors.black,
+                    fillColor: Colors.grey[200],
+                    contentPadding: EdgeInsets.all(12.0)),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _dobController,
+                readOnly: true,
+                onTap: () => _selectDate(context),
+                validator: _validateDOB,
+                cursorColor: Colors.black,
+                decoration: InputDecoration(
+                  labelStyle: TextStyle(color: Colors.black),
+                  labelText: 'Date of Birth',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  filled: true,
+                  focusColor: Colors.black,
+                  fillColor: Colors.grey[200],
+                  contentPadding: EdgeInsets.all(12.0),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
+                cursorColor: Colors.black,
+                decoration: InputDecoration(
+                    labelStyle: TextStyle(color: Colors.black),
+                    labelText: 'Email',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),

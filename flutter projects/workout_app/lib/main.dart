@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -8,6 +9,14 @@ void main() async {
   await dotenv.load(fileName: "assets/.env");
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  DocumentSnapshot snapshot = await FirebaseFirestore.instance
+      .collection("users")
+      .doc('s5m0qGGLAmjABzyEgzfc')
+      .get();
+
+  print(snapshot.data());
+
   runApp(const MyApp());
 }
 
@@ -24,7 +33,7 @@ class MyApp extends StatelessWidget {
           color: Colors.white,
         ),
         colorScheme: ColorScheme.light(
-          primary: Colors.white,
+          primary: Colors.black,
         ),
         buttonTheme: ButtonThemeData(
           buttonColor: Colors.red,
