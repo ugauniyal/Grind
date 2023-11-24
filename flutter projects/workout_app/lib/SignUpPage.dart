@@ -106,8 +106,11 @@ class _SignUpPageState extends State<SignUpPage> {
           'age': age,
           'bio': "",
           'gender': gender,
+          'email': email,
+          'uid': uid,
+          'username': username,
           // Add any other user information you want to store
-        });
+        }, SetOptions(merge: true));
         _showSnackbar("User Created");
 
         if (userCredential.user != null) {

@@ -23,7 +23,7 @@ class _AuthCheckState extends State<AuthCheck> {
     );
   }
 
-  void Login() async {
+  void AuthChecking() async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
@@ -31,16 +31,28 @@ class _AuthCheckState extends State<AuthCheck> {
       _showSnackbar('Please enter all the details');
     } else {
       try {
-        UserCredential userCredential = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(email: email, password: password);
+        User? currentUser = FirebaseAuth.instance.currentUser;
 
-        if (userCredential.user != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => EditProfilePage()),
-          );
+        if (currentUser != null) {
+          if (currentUser.email == email) {
+            AuthCredential userCredential = EmailAuthProvider.credential(
+              email: email,
+              password: password,
+            );
+
+            await currentUser.reauthenticateWithCredential(userCredential);
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => EditProfilePage()),
+              );
+
+          } else {
+            _showSnackbar('Authentication Failed: Incorrect email');
+          }
         }
-      } on FirebaseAuthException catch (ex) {
+      }
+      on FirebaseAuthException catch (ex) {
         _showSnackbar(ex.code.toString());
       }
     }
@@ -111,7 +123,7 @@ class _AuthCheckState extends State<AuthCheck> {
               padding: const EdgeInsets.all(15.0),
               child: ElevatedButton(
                 onPressed: () {
-                  Login();
+                  AuthChecking();
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,

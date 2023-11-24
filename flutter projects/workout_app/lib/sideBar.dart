@@ -13,13 +13,13 @@ class NavBar extends StatefulWidget {
   State<NavBar> createState() => _NavBarState();
 }
 
+
 class _NavBarState extends State<NavBar> {
   void LogOut() async {
     await FirebaseAuth.instance.signOut();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-    );
+    Navigator.popUntil(context, (route) => route.isFirst);
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => LoginScreen()));
   }
 
   String bio = '';
@@ -54,11 +54,11 @@ class _NavBarState extends State<NavBar> {
         children: [
           UserAccountsDrawerHeader(
             accountName: Text(
-              user?.displayName ?? 'Default Name',
+              user?.displayName ?? '',
               style: TextStyle(color: Colors.black),
             ),
             accountEmail: Text(
-              bio.isNotEmpty ? bio : 'Default Bio', // Display bio instead of email
+              bio.isNotEmpty ? bio : '', // Display bio instead of email
               style: TextStyle(color: Colors.black),
             ),
             currentAccountPicture: CircleAvatar(

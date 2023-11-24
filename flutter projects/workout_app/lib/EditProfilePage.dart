@@ -297,7 +297,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     });
                   },
                   focusNode: bioFocusNode,
-                  maxLength: 20,
+                  maxLength: 50,
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
                   decoration: InputDecoration(
                     labelText: "Bio",
