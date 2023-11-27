@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:workout_app/AuthCheck.dart';
+import 'package:workout_app/EditProfilePage.dart';
 
 class SettingsOnePage extends StatefulWidget {
   const SettingsOnePage({Key? key}) : super(key: key);
@@ -281,7 +281,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                         await Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => AuthCheck()));
+                                builder: (context) => EditProfilePage()));
                         // Additional code to execute after navigating (if needed)
                       },
                       child: Text(

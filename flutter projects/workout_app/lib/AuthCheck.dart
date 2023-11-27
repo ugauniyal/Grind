@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:workout_app/EditProfilePage.dart';
+import 'package:workout_app/updatePassword.dart';
 
 class AuthCheck extends StatefulWidget {
   const AuthCheck({super.key});
@@ -42,17 +42,15 @@ class _AuthCheckState extends State<AuthCheck> {
 
             await currentUser.reauthenticateWithCredential(userCredential);
 
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => EditProfilePage()),
-              );
-
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => UpdatePassword()),
+            );
           } else {
             _showSnackbar('Authentication Failed: Incorrect email');
           }
         }
-      }
-      on FirebaseAuthException catch (ex) {
+      } on FirebaseAuthException catch (ex) {
         _showSnackbar(ex.code.toString());
       }
     }

@@ -12,9 +12,10 @@ class ExplorePage extends StatelessWidget {
           decoration: InputDecoration(
             hintText: "Search...",
             border: InputBorder.none,
-            icon: Icon(Icons.search),
+            prefixIcon: Icon(Icons.search),
           ),
         ),
+        automaticallyImplyLeading: false,
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(

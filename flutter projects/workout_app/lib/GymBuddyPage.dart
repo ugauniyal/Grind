@@ -65,9 +65,14 @@ class _SwipeCardState extends State<SwipeCard> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Find your Gym Buddy"),
-        backgroundColor: Colors.white,
         elevation: 0,
+        backgroundColor: Colors.white54,
+        iconTheme: IconThemeData(color: Colors.black),
+        title: Text(
+          "Find Your GymBuddy",
+          style: TextStyle(color: Colors.black),
+        ),
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         decoration: BoxDecoration(

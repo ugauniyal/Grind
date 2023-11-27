@@ -20,6 +20,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   bool _showPassword = false;
+  bool _isUsernameAvailable = false;
 
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -30,9 +31,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  void dropdownCallback(String? selectedValue) {
-
-  }
+  void dropdownCallback(String? selectedValue) {}
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -70,6 +69,26 @@ class _SignUpPageState extends State<SignUpPage> {
     return null;
   }
 
+  void _checkUsernameAvailability(String username) async {
+    // Check if the username exists in the Firestore database
+    username = username.trim();
+    if (username == "") {
+      setState(() {
+        _isUsernameAvailable = false;
+      });
+      return;
+    }
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .get();
+
+    bool isAvailable = querySnapshot.docs.isEmpty;
+    setState(() {
+      _isUsernameAvailable = isAvailable;
+    });
+  }
+
   void createAccount() async {
     // Implement your sign-up logic here
     String email = _emailController.text.trim();
@@ -85,6 +104,12 @@ class _SignUpPageState extends State<SignUpPage> {
     } else if (password != confirmPassword) {
       _showSnackbar('Password does not match');
     } else {
+      bool isUsernameUnique = await isUsernameAvailable(username);
+      if (!isUsernameUnique) {
+        _showSnackbar(
+            'Username is not available. Please choose a different one.');
+        return;
+      }
       try {
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
@@ -142,6 +167,17 @@ class _SignUpPageState extends State<SignUpPage> {
     // For example, you can check if the passwords match, if the email is valid, etc.
   }
 
+  Future<bool> isUsernameAvailable(String username) async {
+    // Check if the username exists in the Firestore database
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .get();
+
+    return querySnapshot
+        .docs.isEmpty; // If the list is empty, the username is available
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,16 +208,36 @@ class _SignUpPageState extends State<SignUpPage> {
               TextField(
                 controller: _userController,
                 cursorColor: Colors.black,
+                onChanged: (username) {
+                  if (username.isNotEmpty) {
+                    _checkUsernameAvailability(username);
+                  } else {
+                    setState(() {
+                      _isUsernameAvailable = true;
+                    });
+                  }
+                },
                 decoration: InputDecoration(
-                    labelStyle: TextStyle(color: Colors.black),
-                    labelText: 'Username',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    filled: true,
-                    focusColor: Colors.black,
-                    fillColor: Colors.grey[200],
-                    contentPadding: EdgeInsets.all(12.0)),
+                  labelStyle: TextStyle(color: Colors.black),
+                  labelText: 'Username',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  filled: true,
+                  focusColor: Colors.black,
+                  fillColor: Colors.grey[200],
+                  contentPadding: EdgeInsets.all(12.0),
+                  suffixIcon: _isUsernameAvailable
+                      ? null
+                      : Icon(
+                          Icons.warning,
+                          color: Colors.red,
+                        ),
+                  suffixText:
+                      _isUsernameAvailable ? 'Available' : 'Not Available',
+                  suffixStyle: TextStyle(
+                      color: _isUsernameAvailable ? Colors.green : Colors.red),
+                ),
               ),
               SizedBox(height: 16),
               TextFormField(
@@ -206,7 +262,8 @@ class _SignUpPageState extends State<SignUpPage> {
               DropdownButtonFormField(
                 value: _genderValue,
                 items: const [
-                  DropdownMenuItem(child: Text("Select"), value: "Select", enabled: false),
+                  DropdownMenuItem(
+                      child: Text("Select"), value: "Select", enabled: false),
                   DropdownMenuItem(child: Text("Male"), value: "Male"),
                   DropdownMenuItem(child: Text("Female"), value: "Female"),
                 ],
@@ -295,16 +352,26 @@ class _SignUpPageState extends State<SignUpPage> {
                     )),
               ),
               SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: createAccount,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // button color
-                  textStyle: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 160, vertical: 10),
+                child: ElevatedButton(
+                  onPressed: () {
+                    createAccount();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    // Set the minimum width and height
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.black,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                    textStyle: const TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
+                  child: Text('Sign Up'),
                 ),
-                child: Text('Sign Up'),
               ),
             ],
           ),

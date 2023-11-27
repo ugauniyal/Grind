@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:workout_app/AuthCheck.dart';
 import 'package:workout_app/BottomNagivationBar.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -17,12 +18,11 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
+  User? user = FirebaseAuth.instance.currentUser;
 
-  final user = FirebaseAuth.instance.currentUser;
-
-  var nameController = TextEditingController(text: "");
+  late TextEditingController nameController;
   var usernameController = TextEditingController(text: "");
-  var bioController = TextEditingController(text: "");
+  late TextEditingController bioController;
   var passwordController = TextEditingController();
   var CpasswordController = TextEditingController();
   File? profilePic;
@@ -30,8 +30,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   bool showCurrentPassword = false;
   bool showNewPassword = false;
   bool showConfirmPassword = false;
-
-
 
   bool _showPassword = false;
 
@@ -42,6 +40,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late FocusNode usernameFocusNode;
   late FocusNode bioFocusNode;
 
+  bool isBioLoaded = false;
+  bool isUsernameUnique = true;
+
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -50,12 +51,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ),
     );
   }
-
-  // void checkCurrentPassword(BuildContext context) async{
-  //   String currentPassword = currentPasswordController.text.trim();
-  //
-  //   if(currentPassword !=  )
-  // }
 
   Future<void> updateName() async {
     String name = nameController.text.trim();
@@ -73,7 +68,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'name': name,
       });
     }
-    // You can implement additional logic here to update the name in your data storage
   }
 
   Future<void> updateBio() async {
@@ -94,20 +88,53 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  void updateUsername() {
-    String username = usernameController.text.trim();
+  Future<void> updateUsername() async {
+    String newUsername = usernameController.text.trim();
 
-    if (username != "") {
-      setState(() {
-        isUsernameChanged = false; // Reset the flag after updating the name
-        _showSnackbar('Username Updated');
-      });
-      usernameFocusNode.unfocus();
+    if (newUsername.isNotEmpty) {
+      // Check if the new username is unique
+      bool isUnique = await checkUsernameUniqueness(newUsername);
 
-      user?.updateDisplayName(username);
+      if (isUnique) {
+        setState(() {
+          isUsernameChanged = false;
+          isUsernameUnique = true;
+          _showSnackbar('Username Updated');
+        });
+
+        // Update the display name in Firebase Authentication
+        user?.updateDisplayName(newUsername);
+      } else {
+        setState(() {
+          isUsernameUnique = false;
+        });
+      }
+    } else {
+      // Handle the case where the new username is empty
+      _showSnackbar('Username cannot be empty');
     }
+
+    usernameFocusNode.unfocus();
   }
 
+  Future<bool> checkUsernameUniqueness(String newUsername) async {
+    try {
+      // Query Firestore to check if the username already exists
+      newUsername = newUsername.trim();
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('username', isEqualTo: newUsername)
+              .get();
+
+      // If the query returns no documents, the username is unique
+      return querySnapshot.docs.isEmpty;
+    } catch (error) {
+      // Handle the error (e.g., log it or show a generic error message)
+      print('Error checking username uniqueness: $error');
+      return false;
+    }
+  }
 
   void updateProfilePic() async {
     XFile? selectedImage =
@@ -124,6 +151,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       return;
     }
 
+    // Upload the new profile picture to Firebase Storage
     UploadTask uploadTask = FirebaseStorage.instance
         .ref()
         .child("ProfilePictures_folder")
@@ -132,20 +160,64 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     TaskSnapshot taskSnapshot = await uploadTask;
     String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-    User? user = FirebaseAuth.instance.currentUser;
-    await user?.updatePhotoURL(downloadUrl);
 
-    // Perform any additional update logic here
-    _showSnackbar('Profile Picture Uploaded and Updated');
+    // Update the user's photoURL in Firebase Authentication
+    try {
+      await user?.updatePhotoURL(downloadUrl);
+
+      // Ensure the user information is refreshed
+      await user?.reload();
+
+      // Access the refreshed user information
+      User? updatedUser = FirebaseAuth.instance.currentUser;
+
+      // Update the user variable to trigger a rebuild
+      setState(() {
+        user = updatedUser;
+      });
+
+      // Perform any additional update logic here
+
+      _showSnackbar('Profile Picture Uploaded and Updated');
+    } catch (error) {
+      print("Error updating profile picture: $error");
+      _showSnackbar('Error updating profile picture');
+    }
   }
-
-  // }
 
   void initState() {
     super.initState();
+
+    nameController = TextEditingController();
+    bioController = TextEditingController(); // Initialize bioController here
+    fetchNameFromFirestore();
+    fetchBioFromFirestore();
+    usernameController = TextEditingController(text: user?.displayName ?? "");
     nameFocusNode = FocusNode();
     usernameFocusNode = FocusNode();
     bioFocusNode = FocusNode();
+  }
+
+  Future<void> fetchNameFromFirestore() async {
+    String? uid = user?.uid;
+    DocumentSnapshot<Map<String, dynamic>> snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    String name = snapshot.data()?['name'] ?? "";
+
+    // Set the fetched name in the nameController
+    setState(() {
+      nameController.text = name;
+    });
+  }
+
+  Future<void> fetchBioFromFirestore() async {
+    String? uid = user?.uid;
+    DocumentSnapshot<Map<String, dynamic>> snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    String bio = snapshot.data()?['bio'] ?? "";
+    setState(() {
+      bioController = TextEditingController(text: bio);
+    });
   }
 
   @override
@@ -259,9 +331,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: TextFormField(
                   cursorColor: Colors.black,
                   controller: usernameController,
-                  onChanged: (value) {
+                  onChanged: (value) async {
+                    bool isUnique = await checkUsernameUniqueness(value);
                     setState(() {
                       isUsernameChanged = true;
+                      isUsernameUnique = isUnique;
                     });
                   },
                   focusNode: usernameFocusNode,
@@ -279,9 +353,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     suffixIcon: isUsernameChanged
                         ? IconButton(
                             icon: Icon(Icons.check),
-                            onPressed: updateUsername,
+                            onPressed: () => updateUsername(),
                           )
                         : null,
+                    suffixText: isUsernameChanged
+                        ? isUsernameUnique
+                            ? 'Available'
+                            : 'Not Available'
+                        : '',
+                    suffixStyle: TextStyle(
+                        color: isUsernameChanged
+                            ? isUsernameUnique
+                                ? Colors.green
+                                : Colors.red
+                            : Colors.transparent),
                   ),
                 ),
               ),
@@ -312,93 +397,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     focusColor: Colors.black,
                     suffixIcon: isBioChanged
                         ? IconButton(
-                      icon: Icon(Icons.check),
-                      onPressed: updateBio,
-                    )
+                            icon: Icon(Icons.check),
+                            onPressed: updateBio,
+                          )
                         : null,
                   ),
                 ),
               ),
               SizedBox(height: 5),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  cursorColor: Colors.black,
-                  controller: passwordController,
-                  obscureText: !_showPassword,
-                  decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.black),
-                      labelText: 'New Password',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
-                      filled: true,
-                      focusColor: Colors.black,
-                      contentPadding: EdgeInsets.all(12.0),
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _showPassword = !_showPassword;
-                          });
-                        },
-                        icon: Icon(
-                          _showPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.grey,
-                        ),
-                      )),
-                ),
-              ),
-              SizedBox(height: 5),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  cursorColor: Colors.black,
-                  controller: CpasswordController,
-                  obscureText: !_showPassword,
-                  decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.black),
-                      labelText: 'Confirm Password',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
-                      filled: true,
-                      focusColor: Colors.black,
-                      contentPadding: EdgeInsets.all(12.0),
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _showPassword = !_showPassword;
-                          });
-                        },
-                        icon: Icon(
-                          _showPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.grey,
-                        ),
-                      )),
-                ),
-              ),
-              SizedBox(height: 5),
-              ElevatedButton(
-                onPressed: saveChanges,
-                child: Text(
-                  "Save new password",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black, // Change button color
-                  foregroundColor: Colors.white, // Change text color
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () async {
+                    await Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => AuthCheck()));
+                    // Additional code to execute after navigating (if needed)
+                  },
+                  child: const Text(
+                    'Change Password?',
+                    style: TextStyle(
+                      color: Colors.blue,
+                    ),
+                  ),
                 ),
               ),
             ],
