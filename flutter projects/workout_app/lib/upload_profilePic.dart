@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +47,10 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
     TaskSnapshot taskSnapshot = await uploadTask;
     String downloadUrl = await taskSnapshot.ref.getDownloadURL();
     User? user = FirebaseAuth.instance.currentUser;
+    String? uid = user?.uid;
+    await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      'downloadUrl': downloadUrl,
+    });
     await user?.updatePhotoURL(downloadUrl);
   }
 

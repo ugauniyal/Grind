@@ -68,9 +68,12 @@ class _SwipeCardState extends State<SwipeCard> {
         elevation: 0,
         backgroundColor: Colors.white54,
         iconTheme: IconThemeData(color: Colors.black),
-        title: Text(
-          "Find Your GymBuddy",
-          style: TextStyle(color: Colors.black),
+        title: TextField(
+          decoration: InputDecoration(
+            hintText: "Search...",
+            border: InputBorder.none,
+            prefixIcon: Icon(Icons.search),
+          ),
         ),
         automaticallyImplyLeading: false,
       ),

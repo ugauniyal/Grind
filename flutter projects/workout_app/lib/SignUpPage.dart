@@ -134,6 +134,7 @@ class _SignUpPageState extends State<SignUpPage> {
           'email': email,
           'uid': uid,
           'username': username,
+          'downloadUrl': '',
           // Add any other user information you want to store
         }, SetOptions(merge: true));
         _showSnackbar("User Created");

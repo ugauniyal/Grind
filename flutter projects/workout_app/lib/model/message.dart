@@ -6,17 +6,15 @@ class Message {
   final String receiverId;
   final String message;
   final Timestamp timestamp;
+  bool read;
 
   Message(
-      {
-
-      required this.senderId,
+      {required this.senderId,
       required this.senderEmail,
       required this.receiverId,
       required this.message,
-      required this.timestamp
-
-      });
+      this.read = false,
+      required this.timestamp});
 
 //   Convert to a map for firestore database
 
@@ -27,7 +25,18 @@ class Message {
       'receiverId': receiverId,
       'message': message,
       'timestamp': timestamp,
+      'read': read,
     };
   }
 
+  factory Message.fromMap(Map<String, dynamic> map) {
+    return Message(
+      senderId: map['senderId'],
+      senderEmail: map['senderEmail'],
+      receiverId: map['receiverId'],
+      message: map['message'],
+      timestamp: map['timestamp'],
+      read: map['read'] ?? false, // Set default value if not present
+    );
+  }
 }

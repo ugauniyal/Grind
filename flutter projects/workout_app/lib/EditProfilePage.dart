@@ -137,6 +137,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void updateProfilePic() async {
+    String? uid = user?.uid;
     XFile? selectedImage =
         await ImagePicker().pickImage(source: ImageSource.gallery);
 
@@ -164,6 +165,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     // Update the user's photoURL in Firebase Authentication
     try {
       await user?.updatePhotoURL(downloadUrl);
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'downloadUrl': downloadUrl,
+      });
 
       // Ensure the user information is refreshed
       await user?.reload();

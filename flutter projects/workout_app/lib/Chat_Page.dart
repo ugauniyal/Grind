@@ -1,5 +1,3 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,34 +10,60 @@ void main() {
 }
 
 class ChatPage extends StatefulWidget {
-
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
 
 class _ChatPageState extends State<ChatPage> {
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  User? user = FirebaseAuth.instance.currentUser;
 
-
-
-  //   Build individual user list items.
   Widget _buildUserListItem(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
 
-  //   Display all the users except current user
+    // Display all the users except the current user
     if (_auth.currentUser!.email != data['email']) {
-      return ListTile(
-        title: Text(data['name']),
+      return GestureDetector(
         onTap: () {
+          // Handle tap event, navigate to ChatDmUI
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ChatDmUI(
-              receiverUserUsername: data['username'],
-              receiverUserID: data['uid'],
-            )),
+            MaterialPageRoute(
+              builder: (context) => ChatDmUI(
+                receiverUserUsername:
+                    data['username'], // replace with the correct field
+                receiverUserID: data['uid'], // replace with the correct field
+                profilePicUrl:
+                    data['downloadUrl'], // replace with the correct field
+              ),
+            ),
           );
-        }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: NetworkImage(
+                  data['downloadUrl'] ??
+                      'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                ),
+              ),
+              SizedBox(width: 18),
+              Text(
+                data['name'],
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(
+                height: 60, // Adjust the height between each user row
+              ),
+            ],
+          ),
+        ),
       );
     } else {
       return Container();
@@ -68,9 +92,7 @@ class _ChatPageState extends State<ChatPage> {
                 .toList(),
           );
         });
-    }
-
-
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,9 +132,12 @@ class _ContactCardState extends State<ContactCard> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ChatDmUI(
-            receiverUserUsername: '',
-            receiverUserID: '',)),
+          MaterialPageRoute(
+              builder: (context) => ChatDmUI(
+                    receiverUserUsername: '',
+                    receiverUserID: '',
+                    profilePicUrl: '',
+                  )),
         );
       },
       child: Card(
@@ -140,5 +165,3 @@ class _ContactCardState extends State<ContactCard> {
     );
   }
 }
-
-

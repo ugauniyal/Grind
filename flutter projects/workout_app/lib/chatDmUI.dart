@@ -9,15 +9,31 @@ import 'chatService.dart';
 class ChatDmUI extends StatefulWidget {
   final String receiverUserUsername;
   final String receiverUserID;
+  final String? profilePicUrl;
 
   const ChatDmUI({
     Key? key,
     required this.receiverUserUsername,
     required this.receiverUserID,
+    required this.profilePicUrl,
   }) : super(key: key);
 
   @override
   State<ChatDmUI> createState() => _ChatDmUIState();
+}
+
+class ReadIndicator extends StatelessWidget {
+  final bool isRead;
+
+  const ReadIndicator({Key? key, required this.isRead}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return isRead
+        ? Icon(Icons.check, color: Colors.blue) // Display checkmark if read
+        : Icon(Icons.access_time,
+            color: Colors.grey); // Display clock if unread
+  }
 }
 
 class _ChatDmUIState extends State<ChatDmUI> {
@@ -28,13 +44,24 @@ class _ChatDmUIState extends State<ChatDmUI> {
 
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
+      // Clear the text controller before sending the message.
+      var messageText = _messageController.text;
+      _messageController.clear();
+
+      // Update the UI immediately
+      // setState(() {});
+
       await _chatService.sendMessage(
         widget.receiverUserID,
-        _messageController.text,
+        messageText,
       );
 
-      // Clear the text controller after sending the message.
-      _messageController.clear();
+      // Optional: Scroll to the bottom after sending the message
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
@@ -42,12 +69,11 @@ class _ChatDmUIState extends State<ChatDmUI> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-  }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+    // Set initial scroll position to the bottom
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
   }
 
   // Build date and day
@@ -71,14 +97,66 @@ class _ChatDmUIState extends State<ChatDmUI> {
     );
   }
 
+  Widget _buildProfileInfo() {
+    return Container(
+      padding: EdgeInsets.all(8.0),
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: NetworkImage(
+                  widget.profilePicUrl ??
+                      'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                ),
+              ),
+              SizedBox(width: 8),
+              Text(
+                widget.receiverUserUsername,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+    // widget.receiverUserUsername
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.receiverUserUsername),
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 17,
+              backgroundImage: NetworkImage(
+                widget.profilePicUrl ??
+                    'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+              ),
+            ),
+            SizedBox(width: 8),
+            Text(
+              widget.receiverUserUsername,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
       body: Column(
         children: [
+          // _buildProfileInfo(),
           Expanded(
             child: StreamBuilder(
               stream: _chatService.getMessages(
@@ -113,9 +191,18 @@ class _ChatDmUIState extends State<ChatDmUI> {
                       children: [
                         // Display date header
                         _buildDateAndDay(messageTimestamp),
-                        // Display messages for the date
-                        ...messageGroup
-                            .map((message) => _buildMessageItem(message)),
+                        // Display messages for the date in reverse order
+                        ListView.builder(
+                          controller:
+                              _scrollController, // Use the same controller
+                          shrinkWrap: true, // Adjust to the content size
+                          itemCount: messageGroup.length,
+                          reverse: true, // Set this to false for regular order
+                          itemBuilder: (context, messageIndex) {
+                            var message = messageGroup[messageIndex];
+                            return _buildMessageItem(message);
+                          },
+                        ),
                       ],
                     );
                   },
@@ -193,11 +280,24 @@ class _ChatDmUIState extends State<ChatDmUI> {
               alignment: alignment,
             ),
           ),
+          // Display read indicator
+          if (alignment == Alignment.centerLeft && (data['read'] ?? false))
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(
+                'Seen',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontSize: 12.0,
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
+  // Build message input
   // Build message input
   Widget _buildMessageInput() {
     return Container(
@@ -224,12 +324,6 @@ class _ChatDmUIState extends State<ChatDmUI> {
           IconButton(
             onPressed: () {
               sendMessage();
-              // Scroll to the bottom when a new message is sent
-              _scrollController.animateTo(
-                _scrollController.position.maxScrollExtent,
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
             },
             icon: const Icon(Icons.send),
           ),
