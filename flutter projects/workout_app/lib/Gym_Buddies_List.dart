@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Buddy {
@@ -17,6 +19,38 @@ class Buddy {
   });
 }
 
+void fetchName() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  String uid = user?.uid ?? '';
+  if (uid.isNotEmpty) {
+    try {
+      CollectionReference userCollection =
+          FirebaseFirestore.instance.collection('users');
+      DocumentSnapshot userDocument = await userCollection.doc(uid).get();
+
+      if (userDocument.exists) {
+        // User document exists, now fetch data from the 'requests' subcollection
+        CollectionReference requestsCollection =
+            userCollection.doc(uid).collection('requests');
+        QuerySnapshot requestsSnapshot = await requestsCollection.get();
+
+        if (requestsSnapshot.docs.isNotEmpty) {
+          // Requests subcollection has documents, print the data
+          final allRequestsData =
+              requestsSnapshot.docs.map((doc) => doc.data()).toList();
+          print('Requests Data: $allRequestsData');
+        } else {
+          print('No documents found in the requests subcollection');
+        }
+      } else {
+        print('User document does not exist');
+      }
+    } catch (ex) {
+      print('Error in fetching data: $ex');
+    }
+  }
+}
+
 class GymBuddies extends StatefulWidget {
   const GymBuddies({super.key});
 
@@ -25,54 +59,6 @@ class GymBuddies extends StatefulWidget {
 }
 
 class _GymBuddiesState extends State<GymBuddies> {
-  List<Buddy> friendRequests = [
-    Buddy(
-      name: 'ronaldo',
-      username: 'Cristiano Ronaldo',
-      imageUrl:
-          "https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg",
-      isFollowed: false,
-    ),
-    Buddy(
-      name: 'virat.kohli',
-      username: 'Virat Kohli',
-      imageUrl:
-          "https://cdn.images.express.co.uk/img/dynamic/68/590x/Virat-Kohli-India-cricket-star-927773.jpg?r=1686998680160",
-      isFollowed: false,
-    ),
-  ];
-
-  List<Buddy> followersList = [
-    Buddy(
-      name: 'virat.kohli',
-      username: 'Virat Kohli',
-      imageUrl:
-          "https://cdn.images.express.co.uk/img/dynamic/68/590x/Virat-Kohli-India-cricket-star-927773.jpg?r=1686998680160",
-      isFollowed: false,
-    ),
-    Buddy(
-      name: 'steve_smith',
-      username: 'Steve Smith',
-      imageUrl:
-          "https://staticg.sportskeeda.com/editor/2023/02/4a3c6-16766121781745-1920.jpg",
-      isFollowed: false,
-    ),
-    Buddy(
-      name: 'leomessi',
-      username: 'Leo Messi',
-      imageUrl:
-          "https://img.olympicchannel.com/images/image/private/t_s_w960/t_s_16_9_g_auto/f_auto/primary/wq4l6w3ftzn6gequts2v",
-      isFollowed: false,
-    ),
-    Buddy(
-      name: 'ronaldo',
-      username: 'Cristiano Ronaldo',
-      imageUrl:
-          "https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg",
-      isFollowed: false,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,23 +90,193 @@ class _GymBuddiesState extends State<GymBuddies> {
             child: Container(
               padding: const EdgeInsets.all(16.0),
               color: Colors.white,
-              child: ListView.builder(
-                itemCount: friendRequests.length,
-                itemBuilder: (context, index) {
-                  Buddy user = friendRequests[index];
-                  return friendRequestItem(user);
+              child: StreamBuilder(
+                stream: FirebaseAuth.instance.authStateChanges(),
+                builder:
+                    (BuildContext context, AsyncSnapshot<User?> authSnapshot) {
+                  if (authSnapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+
+                  if (authSnapshot.hasError) {
+                    return Text('Error: ${authSnapshot.error}');
+                  }
+
+                  if (!authSnapshot.hasData || authSnapshot.data == null) {
+                    return Text('No user logged in');
+                  }
+
+                  User user = authSnapshot.data!;
+                  List<String> requestUids = []; // List to store request UIDs
+
+                  return StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(user.uid)
+                        .collection('requests')
+                        .snapshots(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> requestSnapshot) {
+                      if (requestSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      }
+
+                      if (requestSnapshot.hasError) {
+                        return Text('Error: ${requestSnapshot.error}');
+                      }
+
+                      if (!requestSnapshot.hasData ||
+                          requestSnapshot.data!.docs.isEmpty) {
+                        return Text('No requests available for this user');
+                      }
+
+                      // Process the data from the requests snapshot
+                      List<Map<String, dynamic>> requestsDataList =
+                          requestSnapshot.data!.docs
+                              .map((DocumentSnapshot doc) =>
+                                  doc.data() as Map<String, dynamic>)
+                              .toList();
+                      // Filter out accepted friend requests
+                      requestsDataList = requestsDataList
+                          .where((request) =>
+                              !request.containsKey('accepted') ||
+                              request['accepted'] != true)
+                          .toList();
+
+                      // Save the request UIDs to the list
+                      List<String> requestUids = requestsDataList
+                          .map((request) => request['uid'].toString())
+                          .toList();
+
+                      // Display the request UIDs
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (String uid in requestUids)
+                            StreamBuilder(
+                              stream: FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(uid)
+                                  .snapshots(),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<DocumentSnapshot>
+                                      userSnapshot) {
+                                if (userSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return CircularProgressIndicator();
+                                }
+
+                                if (userSnapshot.hasError) {
+                                  return Text('Error: ${userSnapshot.error}');
+                                }
+
+                                if (!userSnapshot.hasData ||
+                                    !userSnapshot.data!.exists) {
+                                  return Text('User with UID $uid not found');
+                                }
+
+                                // Access the data using userSnapshot.data.data() or userSnapshot.data.get('field_name')
+                                Map<String, dynamic> userData =
+                                    userSnapshot.data!.data()
+                                        as Map<String, dynamic>;
+                                // Check if the user is accepted
+                                bool isAccepted =
+                                    userData.containsKey('accepted') &&
+                                        userData['accepted'];
+                                if (isAccepted) {
+                                  // Don't render this user in the UI for friend requests
+                                  return SizedBox.shrink();
+                                }
+
+                                // Display only the "name" and "username" fields
+                                return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      if (userData.containsKey('downloadUrl') &&
+                                          userData['downloadUrl'] != null &&
+                                          userData['downloadUrl'] is String)
+                                        CircleAvatar(
+                                          backgroundImage: NetworkImage(
+                                            userData['downloadUrl'],
+                                          ),
+                                          radius: 20,
+                                        ),
+                                      SizedBox(width: 18),
+                                      if (userData.containsKey('name'))
+                                        Text(
+                                          '${userData['name']}',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      Spacer(), // Add Spacer to push icons to the right
+                                      GestureDetector(
+                                        onTap: () {
+                                          FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(authSnapshot.data!
+                                                  .uid) // Assuming the logged-in user's UID
+                                              .collection('requests')
+                                              .doc(
+                                                  uid) // UID of the user to be removed
+                                              .delete();
+                                        },
+                                        child: const Icon(
+                                          Icons
+                                              .clear, // Replace with the icon you want for the cross
+                                          color: Colors
+                                              .red, // Set the color as needed
+                                        ),
+                                      ),
+                                      SizedBox(
+                                          width:
+                                              10), // Add some spacing between icons
+                                      GestureDetector(
+                                        onTap: () {
+                                          FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(authSnapshot.data!
+                                                  .uid) // Assuming the logged-in user's UID
+                                              .collection('requests')
+                                              .doc(
+                                                  uid) // UID of the user to be removed
+                                              .update({
+                                            'accepted': true,
+                                            'pending': false,
+                                          });
+                                        },
+                                        child: Icon(
+                                          Icons
+                                              .check, // Replace with the icon you want for the tick
+                                          color: Colors
+                                              .green, // Set the color as needed
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      );
+                    },
+                  );
                 },
               ),
             ),
           ),
 
           // List of Followers Section
+          // List of Followers Section
           Container(
             padding: const EdgeInsets.all(16.0),
             color: Colors.white,
             child: ListTile(
               title: Text(
-                'Followers',
+                'Added Friends',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -128,19 +284,139 @@ class _GymBuddiesState extends State<GymBuddies> {
               ),
             ),
           ),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16.0),
-              color: Colors.white,
-              child: ListView.builder(
-                itemCount: followersList.length,
-                itemBuilder: (context, index) {
-                  Buddy user = followersList[index];
-                  return followerItem(user);
+          StreamBuilder(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (BuildContext context, AsyncSnapshot<User?> authSnapshot) {
+              if (authSnapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              }
+
+              if (authSnapshot.hasError) {
+                return Text('Error: ${authSnapshot.error}');
+              }
+
+              if (!authSnapshot.hasData || authSnapshot.data == null) {
+                return Text('No user logged in');
+              }
+
+              User user = authSnapshot.data!;
+
+              return StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .collection('requests')
+                    .where('accepted', isEqualTo: true)
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> acceptedSnapshot) {
+                  if (acceptedSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+
+                  if (acceptedSnapshot.hasError) {
+                    return Text('Error: ${acceptedSnapshot.error}');
+                  }
+
+                  if (!acceptedSnapshot.hasData ||
+                      acceptedSnapshot.data!.docs.isEmpty) {
+                    return Text('No friend requests available');
+                  }
+
+                  // Process the data from the acceptedSnapshot
+                  List<Map<String, dynamic>> acceptedDataList = acceptedSnapshot
+                      .data!.docs
+                      .map((DocumentSnapshot doc) =>
+                          doc.data() as Map<String, dynamic>)
+                      .toList();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (Map<String, dynamic> acceptedData
+                          in acceptedDataList)
+                        StreamBuilder(
+                          stream: FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(acceptedData['uid'].toString())
+                              .snapshots(),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<DocumentSnapshot> userSnapshot) {
+                            if (userSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return CircularProgressIndicator();
+                            }
+
+                            if (userSnapshot.hasError) {
+                              return Text('Error: ${userSnapshot.error}');
+                            }
+
+                            if (!userSnapshot.hasData ||
+                                !userSnapshot.data!.exists) {
+                              return Text('User not found');
+                            }
+
+                            // Access the data using userSnapshot.data.data() or userSnapshot.data.get('field_name')
+                            Map<String, dynamic> userData = userSnapshot.data!
+                                .data() as Map<String, dynamic>;
+
+                            // Get the UID of the friend
+                            String friendUid = acceptedData['uid'].toString();
+
+                            // Display only the "name" field for added friends
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  if (userData.containsKey('downloadUrl') &&
+                                      userData['downloadUrl'] != null &&
+                                      userData['downloadUrl'] is String)
+                                    CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        userData['downloadUrl'],
+                                      ),
+                                      radius: 20,
+                                    ),
+                                  SizedBox(width: 18),
+                                  if (userData.containsKey('name'))
+                                    Text(
+                                      '${userData['name']}',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  Spacer(), // Add Spacer to push icons to the right
+                                  GestureDetector(
+                                    onTap: () {
+                                      FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(authSnapshot.data!.uid)
+                                          .collection('requests')
+                                          .doc(
+                                              friendUid) // Use the friend's UID
+                                          .delete();
+                                    },
+                                    child: Icon(
+                                      Icons.remove_circle,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  );
                 },
-              ),
-            ),
+              );
+            },
           ),
+          SizedBox(
+            height: 40,
+          )
         ],
       ),
     );

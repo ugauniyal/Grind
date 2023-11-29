@@ -13,7 +13,6 @@ class NavBar extends StatefulWidget {
   State<NavBar> createState() => _NavBarState();
 }
 
-
 class _NavBarState extends State<NavBar> {
   void LogOut() async {
     await FirebaseAuth.instance.signOut();
@@ -30,7 +29,8 @@ class _NavBarState extends State<NavBar> {
     String uid = user?.uid ?? '';
     if (uid.isNotEmpty) {
       try {
-        DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
         setState(() {
           bio = snapshot.data()?['bio'] ?? '';
         });
@@ -47,7 +47,6 @@ class _NavBarState extends State<NavBar> {
 
   @override
   Widget build(BuildContext context) {
-
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
