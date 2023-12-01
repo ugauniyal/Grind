@@ -26,6 +26,7 @@ class _UpdatePasswordState extends State<UpdatePassword> {
     );
   }
 
+  //changes are saved when new password is updated and also password is changed in database
   void saveChanges() async {
     String newPassword = passwordController.text.trim();
     String confirmPassword = CpasswordController.text.trim();

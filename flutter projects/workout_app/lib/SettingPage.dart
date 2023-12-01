@@ -30,72 +30,11 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
   bool intermediateSelected = false;
   bool advancedSelected = false;
   bool isLevelOfGymBuddyExpanded = false;
-
   bool isShowMeExpanded = false;
   bool menSelected = false;
   bool womenSelected = false;
   bool bothSelected = false;
-
   bool isInterestExpanded = false;
-
-  // // var nameController = TextEditingController(text: "Tun Tun");
-  // var emailController = TextEditingController(text: "tuntun@gmail.com");
-  //
-  // // String name = "Tun Tun";
-  // String email = "tuntun@gmail.com";
-  //
-  // var nameController = TextEditingController(text: "Tun Tun");
-  // var currentPasswordController = TextEditingController(text: "mohsin");
-  // var passwordController = TextEditingController(text: "1234");
-  // var CpasswordController = TextEditingController(text: "1234");
-  //
-  // bool showCurrentPassword = false;
-  // bool showNewPassword = false;
-  // bool showConfirmPassword = false;
-  //
-  // final user = FirebaseAuth.instance.currentUser;
-  //
-  // String name = "Tun Tun";
-  //
-  // void _showSnackbar(String message) {
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text(message),
-  //       duration: const Duration(seconds: 2),
-  //     ),
-  //   );
-  // }
-  //
-  // void saveChanges() async {
-  //   setState(() {
-  //     name = nameController.text;
-  //   });
-  //
-  //   // Implement the logic to save changes here
-  //   // You can use the updated 'name' and 'email' variables to update your user data
-  //
-  //   // Navigate back to the LoggedInPage
-  //   String currentPassword = currentPasswordController.text.trim();
-  //   String newPassword = passwordController.text.trim();
-  //   String ConfirmPassword = CpasswordController.text.trim();
-  //
-  //   if (currentPassword != "") {
-  //     if (newPassword == "" || ConfirmPassword == "") {
-  //       _showSnackbar('Please enter New Password details');
-  //     } else if (newPassword != ConfirmPassword) {
-  //       _showSnackbar('Password does not match');
-  //     }
-  //   } else {
-  //     try {
-  //       if (user != null) {
-  //         await user?.updatePassword(newPassword);
-  //         _showSnackbar('Changes Done');
-  //       }
-  //     } on FirebaseAuthException catch (ex) {
-  //       _showSnackbar(ex.code.toString());
-  //     }
-  //   }
-  // }
 
   Widget _buildInterestsList() {
     return ListView.builder(
@@ -114,8 +53,8 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
           _showAddInterestDialog(context);
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green, // Change button color
-          foregroundColor: Colors.white, // Change text color
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
         ),
         child: Text("Add Interest"),
       ),
@@ -145,12 +84,10 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
               onPressed: () {
                 String enteredInterest = _interestController.text.trim();
                 if (enteredInterest.isNotEmpty) {
-                  // Do something with the entered interest
                   interests.add(enteredInterest);
-                  setState(() {}); // Assuming you are using StatefulWidget
-                  Navigator.pop(context); // Close the dialog
+                  setState(() {});
+                  Navigator.pop(context);
                 } else {
-                  // Show Snackbar if the user didn't enter anything
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Please enter an interest'),
@@ -168,19 +105,6 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
       },
     );
   }
-
-  // void saveChanges() {
-  //   setState(() {
-  //     name = nameController.text;
-  //     email = emailController.text;
-  //   });
-  //
-  //   // Implement the logic to save changes here
-  //   // You can use the updated 'name' and 'email' variables to update your user data
-  //
-  //   // Navigate back to the LoggedInPage
-  //   _showSnackbar('Changes Done');
-  // }
 
   @override
   Widget _buildDistanceSlider(BuildContext context) {
@@ -202,15 +126,13 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
         ),
         ElevatedButton(
           onPressed: () {
-            // Add logic to save password changes
-            // You can call a method to handle the password change here
             setState(() {
               isDistanceRadiusExpanded = false;
             });
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green, // Change button color
-            foregroundColor: Colors.white, // Change text color
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
           ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -282,15 +204,14 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => EditProfilePage()));
-                        // Additional code to execute after navigating (if needed)
                       },
                       child: Text(
                         "Update Profile",
                         style: TextStyle(color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black, // Change button color
-                        foregroundColor: Colors.white, // Change text color
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
                       ),
                     ),
                   ),
@@ -331,7 +252,6 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   _buildDistanceSlider(context),
-                                  // Add more widgets as needed
                                 ],
                               ),
                             ),
@@ -403,16 +323,13 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                   SizedBox(
                                     height: 10,
                                   ),
-
                                   if (isShowMeExpanded)
                                     Center(
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          // Check if at least one checkbox is selected
                                           if (menSelected ||
                                               womenSelected ||
                                               bothSelected) {
-                                            // Add logic to save changes
                                             setState(() {
                                               isShowMeExpanded = false;
                                             });
@@ -424,10 +341,8 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                           }
                                         },
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors
-                                              .green, // Change button color
-                                          foregroundColor:
-                                              Colors.white, // Change text color
+                                          backgroundColor: Colors.green,
+                                          foregroundColor: Colors.white,
                                         ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
@@ -438,7 +353,6 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                   SizedBox(
                                     height: 8,
                                   )
-                                  // Add more widgets as needed
                                 ],
                               ),
                             ),
@@ -508,7 +422,6 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                   SizedBox(
                                     height: 10,
                                   ),
-
                                   if (isLevelOfGymBuddyExpanded)
                                     Center(
                                       child: ElevatedButton(
@@ -529,10 +442,8 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                           }
                                         },
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors
-                                              .green, // Change button color
-                                          foregroundColor:
-                                              Colors.white, // Change text color
+                                          backgroundColor: Colors.green,
+                                          foregroundColor: Colors.white,
                                         ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
@@ -543,7 +454,6 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                   SizedBox(
                                     height: 8,
                                   )
-                                  // Add more widgets as needed
                                 ],
                               ),
                             ),
@@ -638,34 +548,6 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                 const SizedBox(
                   height: 5.0,
                 ),
-                // Padding(
-                //   padding: const EdgeInsets.only(left: 8.0),
-                //   child: Text(
-                //     "Dark Mode",
-                //     style: TextStyle(
-                //       fontSize: 15.0,
-                //       fontWeight: FontWeight.bold,
-                //       color: Colors.indigo,
-                //     ),
-                //   ),
-                // ),
-                // Padding(
-                //   padding: const EdgeInsets.only(left: 8.0),
-                //   child: SwitchListTile(
-                //       dense: true,
-                //       activeColor: Colors.black,
-                //       contentPadding: const EdgeInsets.all(0),
-                //       value: enableDarkMode,
-                //       title:
-                //           Text('Enable Dark Mode', style: TextStyle(fontSize: 13)),
-                //       onChanged: (val) {
-                //         setState(() {
-                //           enableDarkMode = val;
-                //           // Provider.of<ThemeProvider>(context, listen: false)
-                //           //     .toggleTheme();
-                //         });
-                //       }),
-                // ),
               ],
             ),
           ],
@@ -684,7 +566,6 @@ class InterestItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(title),
-      // Customize ListTile as needed
     );
   }
 }

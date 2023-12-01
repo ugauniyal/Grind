@@ -1,10 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:workout_app/Chat_Page.dart';
-import 'package:workout_app/EditProfilePage.dart';
 import 'package:workout_app/GymProfile.dart';
 import 'package:workout_app/sideBar.dart';
-import 'package:workout_app/signIO.dart';
 
 // Function to determine the star color based on the rating
 Color _getStarColor(double rating) {
@@ -39,23 +36,23 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
 
   @override
-  void loginOrProfile(BuildContext context) async {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-        print('User is currently signed out!');
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
-        );
-      } else {
-        print('User is signed in!');
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => EditProfilePage()),
-        );
-      }
-    });
-  }
+  // void loginOrProfile(BuildContext context) async {
+  //   FirebaseAuth.instance.authStateChanges().listen((User? user) {
+  //     if (user == null) {
+  //       print('User is currently signed out!');
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => LoginScreen()),
+  //       );
+  //     } else {
+  //       print('User is signed in!');
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => EditProfilePage()),
+  //       );
+  //     }
+  //   });
+  // }
 
   Widget build(BuildContext context) {
     return Scaffold(

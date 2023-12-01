@@ -2,22 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class Buddy {
-  final String name;
-  final String username;
-  final String imageUrl;
-  bool isFollowed;
-
-  int? age;
-
-  Buddy({
-    required this.name,
-    required this.username,
-    required this.imageUrl,
-    required this.isFollowed,
-    this.age,
-  });
-}
+import 'chatDmUI.dart';
 
 void fetchName() async {
   User? user = FirebaseAuth.instance.currentUser;
@@ -95,7 +80,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                 builder:
                     (BuildContext context, AsyncSnapshot<User?> authSnapshot) {
                   if (authSnapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return Text('Loading');
                   }
 
                   if (authSnapshot.hasError) {
@@ -119,7 +104,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                         AsyncSnapshot<QuerySnapshot> requestSnapshot) {
                       if (requestSnapshot.connectionState ==
                           ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return Text('Loading');
                       }
 
                       if (requestSnapshot.hasError) {
@@ -141,7 +126,8 @@ class _GymBuddiesState extends State<GymBuddies> {
                       requestsDataList = requestsDataList
                           .where((request) =>
                               !request.containsKey('accepted') ||
-                              request['accepted'] != true)
+                              request['accepted'] != true &&
+                                  request['block'] != true)
                           .toList();
 
                       // Save the request UIDs to the list
@@ -164,7 +150,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                                       userSnapshot) {
                                 if (userSnapshot.connectionState ==
                                     ConnectionState.waiting) {
-                                  return CircularProgressIndicator();
+                                  return Text('Loading');
                                 }
 
                                 if (userSnapshot.hasError) {
@@ -184,7 +170,13 @@ class _GymBuddiesState extends State<GymBuddies> {
                                 bool isAccepted =
                                     userData.containsKey('accepted') &&
                                         userData['accepted'];
-                                if (isAccepted) {
+                                bool isPending =
+                                    userData.containsKey('pending') &&
+                                        userData['pending'];
+                                bool isBlock = userData.containsKey('block') &&
+                                    userData['block'];
+
+                                if (isAccepted && isBlock) {
                                   // Don't render this user in the UI for friend requests
                                   return SizedBox.shrink();
                                 }
@@ -288,7 +280,7 @@ class _GymBuddiesState extends State<GymBuddies> {
             stream: FirebaseAuth.instance.authStateChanges(),
             builder: (BuildContext context, AsyncSnapshot<User?> authSnapshot) {
               if (authSnapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
+                return Text('loading');
               }
 
               if (authSnapshot.hasError) {
@@ -312,7 +304,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                     AsyncSnapshot<QuerySnapshot> acceptedSnapshot) {
                   if (acceptedSnapshot.connectionState ==
                       ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return Text('Loading');
                   }
 
                   if (acceptedSnapshot.hasError) {
@@ -345,7 +337,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                               AsyncSnapshot<DocumentSnapshot> userSnapshot) {
                             if (userSnapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return CircularProgressIndicator();
+                              return Text('Loading');
                             }
 
                             if (userSnapshot.hasError) {
@@ -364,46 +356,289 @@ class _GymBuddiesState extends State<GymBuddies> {
                             // Get the UID of the friend
                             String friendUid = acceptedData['uid'].toString();
 
-                            // Display only the "name" field for added friends
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  if (userData.containsKey('downloadUrl') &&
-                                      userData['downloadUrl'] != null &&
-                                      userData['downloadUrl'] is String)
-                                    CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                        userData['downloadUrl'],
-                                      ),
-                                      radius: 20,
-                                    ),
-                                  SizedBox(width: 18),
-                                  if (userData.containsKey('name'))
-                                    Text(
-                                      '${userData['name']}',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  Spacer(), // Add Spacer to push icons to the right
-                                  GestureDetector(
-                                    onTap: () {
-                                      FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(authSnapshot.data!.uid)
-                                          .collection('requests')
-                                          .doc(
-                                              friendUid) // Use the friend's UID
-                                          .delete();
+                              child: GestureDetector(
+                                onLongPress: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          ListTile(
+                                            leading: Icon(Icons.remove_circle,
+                                                color: Colors.red),
+                                            title: Text('Remove Friend'),
+                                            onTap: () {
+                                              FirebaseFirestore.instance
+                                                  .collection('users')
+                                                  .doc(authSnapshot.data!.uid)
+                                                  .collection('requests')
+                                                  .doc(
+                                                      friendUid) // Use the friend's UID
+                                                  .delete();
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                          ListTile(
+                                            leading: Icon(Icons.block,
+                                                color: Colors.black),
+                                            title: Text('Block User'),
+                                            onTap: () {
+                                              // Handle block user action
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                          ListTile(
+                                            leading: Icon(Icons.chat_bubble,
+                                                color: Colors.blue),
+                                            title: Text('Open Chatbox'),
+                                            onTap: () {
+                                              // Handle open chatbox action
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ChatDmUI(
+                                                    receiverUserUsername:
+                                                        userData['name'],
+                                                    receiverUserID: friendUid,
+                                                    profilePicUrl: userData[
+                                                            'downloadUrl'] ??
+                                                        'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                                                  ),
+                                                ),
+                                              );
+                                              // Add your code to open the chatbox
+                                            },
+                                          ),
+                                        ],
+                                      );
                                     },
-                                    child: Icon(
-                                      Icons.remove_circle,
-                                      color: Colors.red,
-                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(10.0),
                                   ),
-                                ],
+                                  child: Row(
+                                    children: [
+                                      if (userData.containsKey('downloadUrl') &&
+                                          userData['downloadUrl'] != null &&
+                                          userData['downloadUrl'] is String)
+                                        CircleAvatar(
+                                          backgroundImage: NetworkImage(
+                                            userData['downloadUrl'],
+                                          ),
+                                          radius: 20,
+                                        ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        '${userData['name']}',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      GestureDetector(
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  ListTile(
+                                                    leading: Icon(
+                                                        Icons.remove_circle,
+                                                        color: Colors.red),
+                                                    title:
+                                                        Text('Remove Friend'),
+                                                    onTap: () {
+                                                      FirebaseFirestore.instance
+                                                          .collection('users')
+                                                          .doc(authSnapshot
+                                                              .data!.uid)
+                                                          .collection(
+                                                              'requests')
+                                                          .doc(friendUid)
+                                                          .delete();
+                                                      Navigator.pop(context);
+                                                    },
+                                                  ),
+                                                  ListTile(
+                                                    leading: Icon(Icons.block,
+                                                        color: Colors.black),
+                                                    title: Text('Block User'),
+                                                    onTap: () {
+                                                      FirebaseFirestore.instance
+                                                          .collection('users')
+                                                          .doc(authSnapshot
+                                                              .data!
+                                                              .uid) // Assuming the logged-in user's UID
+                                                          .collection(
+                                                              'requests')
+                                                          .doc(
+                                                              friendUid) // UID of the user to be removed
+                                                          .update({
+                                                        'block': true,
+                                                        'accepted': false,
+                                                      });
+                                                      Navigator.pop(context);
+                                                    },
+                                                  ),
+                                                  ListTile(
+                                                    leading: Icon(
+                                                        Icons.chat_bubble,
+                                                        color: Colors.blue),
+                                                    title: Text('Open Chatbox'),
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              ChatDmUI(
+                                                            receiverUserUsername:
+                                                                userData[
+                                                                    'name'],
+                                                            receiverUserID:
+                                                                friendUid,
+                                                            profilePicUrl: userData[
+                                                                    'downloadUrl'] ??
+                                                                'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        },
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: Ink(
+                                            decoration: BoxDecoration(
+                                              color: Colors.transparent,
+                                              borderRadius:
+                                                  BorderRadius.circular(4.0),
+                                            ),
+                                            child: InkWell(
+                                              onTap: () {
+                                                showModalBottomSheet(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        ListTile(
+                                                          leading: Icon(
+                                                              Icons
+                                                                  .remove_circle,
+                                                              color:
+                                                                  Colors.red),
+                                                          title: Text(
+                                                              'Remove Friend'),
+                                                          onTap: () {
+                                                            FirebaseFirestore
+                                                                .instance
+                                                                .collection(
+                                                                    'users')
+                                                                .doc(
+                                                                    authSnapshot
+                                                                        .data!
+                                                                        .uid)
+                                                                .collection(
+                                                                    'requests')
+                                                                .doc(friendUid)
+                                                                .delete();
+                                                            Navigator.pop(
+                                                                context);
+                                                          },
+                                                        ),
+                                                        ListTile(
+                                                          leading: Icon(
+                                                              Icons.block,
+                                                              color:
+                                                                  Colors.black),
+                                                          title: Text(
+                                                              'Block User'),
+                                                          onTap: () {
+                                                            FirebaseFirestore
+                                                                .instance
+                                                                .collection(
+                                                                    'users')
+                                                                .doc(authSnapshot
+                                                                    .data!
+                                                                    .uid) // Assuming the logged-in user's UID
+                                                                .collection(
+                                                                    'requests')
+                                                                .doc(
+                                                                    friendUid) // UID of the user to be removed
+                                                                .update({
+                                                              'block': true,
+                                                              'accepted': false,
+                                                            });
+                                                            Navigator.pop(
+                                                                context);
+                                                          },
+                                                        ),
+                                                        ListTile(
+                                                          leading: Icon(
+                                                              Icons.chat_bubble,
+                                                              color:
+                                                                  Colors.blue),
+                                                          title: Text(
+                                                              'Open Chatbox'),
+                                                          onTap: () {
+                                                            Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                builder:
+                                                                    (context) =>
+                                                                        ChatDmUI(
+                                                                  receiverUserUsername:
+                                                                      userData[
+                                                                          'name'],
+                                                                  receiverUserID:
+                                                                      friendUid,
+                                                                  profilePicUrl:
+                                                                      userData[
+                                                                              'downloadUrl'] ??
+                                                                          'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                              borderRadius:
+                                                  BorderRadius.circular(4.0),
+                                              highlightColor: Colors.grey[
+                                                  400], // Adjust the color to your preference
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: Icon(Icons.more_vert),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             );
                           },
@@ -416,158 +651,6 @@ class _GymBuddiesState extends State<GymBuddies> {
           ),
           SizedBox(
             height: 40,
-          )
-        ],
-      ),
-    );
-  }
-
-  friendRequestItem(Buddy user) {
-    return Container(
-      padding: const EdgeInsets.only(top: 10, bottom: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              SizedBox(
-                height: 60,
-                width: 60,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: Image.network(
-                    user.imageUrl,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  Text(
-                    user.username,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
-                  )
-                ],
-              )
-            ],
-          ),
-          Container(
-            height: 40,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.white,
-              ),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: MaterialButton(
-              color: user.isFollowed
-                  ? const Color.fromARGB(255, 214, 213, 214)
-                  : const Color.fromRGBO(0, 0, 0, 100),
-              onPressed: () {
-                setState(() {
-                  user.isFollowed = !user.isFollowed;
-                });
-              },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: Text(
-                user.isFollowed ? 'Accept' : 'Decline',
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  followerItem(Buddy user) {
-    return Container(
-      padding: const EdgeInsets.only(top: 10, bottom: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              SizedBox(
-                height: 60,
-                width: 60,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: Image.network(
-                    user.imageUrl,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  Text(
-                    user.username,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
-                  )
-                ],
-              )
-            ],
-          ),
-          Container(
-            height: 40,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.white,
-              ),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: MaterialButton(
-              color: user.isFollowed
-                  ? const Color.fromARGB(255, 214, 213, 214)
-                  : const Color.fromRGBO(0, 0, 0, 100),
-              onPressed: () {
-                setState(() {
-                  user.isFollowed = !user.isFollowed;
-                });
-              },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: Text(
-                user.isFollowed ? 'Unfollow' : 'Follow',
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
           )
         ],
       ),

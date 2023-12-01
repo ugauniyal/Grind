@@ -26,12 +26,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   var passwordController = TextEditingController();
   var CpasswordController = TextEditingController();
   File? profilePic;
+  File? viewPhoto;
 
   bool showCurrentPassword = false;
   bool showNewPassword = false;
   bool showConfirmPassword = false;
-
-  bool _showPassword = false;
 
   bool isNameChanged = false;
   bool isUsernameChanged = false;
@@ -42,6 +41,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   bool isBioLoaded = false;
   bool isUsernameUnique = true;
+  String? viewPhotoUrl;
 
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -182,18 +182,85 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       // Perform any additional update logic here
 
-      _showSnackbar('Profile Picture Uploaded and Updated');
+      _showSnackbar('profile Picture Uploaded');
     } catch (error) {
-      print("Error updating profile picture: $error");
       _showSnackbar('Error updating profile picture');
+    }
+  }
+
+  void saveViewPhoto() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    String uid = user?.uid ?? '';
+    XFile? selectedImage =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (selectedImage != null) {
+      File convertedFile = File(selectedImage.path);
+
+      try {
+        // Image is being uploaded
+        UploadTask uploadTask = FirebaseStorage.instance
+            .ref()
+            .child("ViewerPictures_folder")
+            .child(Uuid().v1())
+            .putFile(convertedFile);
+
+        TaskSnapshot taskSnapshot = await uploadTask;
+        String downloadUrl1 = await taskSnapshot.ref.getDownloadURL();
+
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'downloadUrl1': downloadUrl1,
+        });
+
+        await user?.reload();
+
+        _showSnackbar('View Image Updated');
+
+        // Wait for the setState to complete before navigating
+        setState(() {});
+
+        print("View Photo URL: $viewPhotoUrl");
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => EditProfilePage()),
+        );
+      } catch (error) {
+        print("Error uploading image: $error");
+        _showSnackbar('Error uploading image');
+      }
+    } else {
+      _showSnackbar('No image selected');
+    }
+  }
+
+  Future<void> getDownloadUrl() async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(user?.uid)
+          .get();
+      String updatedDownloadUrl = snapshot.data()?['downloadUrl1'] ?? "";
+
+      setState(() {
+        viewPhotoUrl = updatedDownloadUrl;
+      });
+    } catch (error) {
+      print("Error fetching download URL: $error");
+      // Handle the error, e.g., show a default image or a placeholder
+      setState(() {
+        viewPhotoUrl =
+            'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg';
+      });
     }
   }
 
   void initState() {
     super.initState();
+    getDownloadUrl();
 
     nameController = TextEditingController();
-    bioController = TextEditingController(); // Initialize bioController here
+    bioController = TextEditingController();
     fetchNameFromFirestore();
     fetchBioFromFirestore();
     usernameController = TextEditingController(text: user?.displayName ?? "");
@@ -208,7 +275,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
     String name = snapshot.data()?['name'] ?? "";
 
-    // Set the fetched name in the nameController
     setState(() {
       nameController.text = name;
     });
@@ -226,17 +292,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   void dispose() {
-    nameFocusNode.dispose(); // Dispose the FocusNode when it's no longer needed
+    nameFocusNode.dispose();
     usernameFocusNode.dispose();
     bioFocusNode.dispose();
     super.dispose();
   }
 
   void saveChanges() async {
-    // Implement the logic to save changes here
-    // You can use the updated 'name' and 'email' variables to update your user data
-
-    // Navigate back to the LoggedInPage
     String newPassword = passwordController.text.trim();
     String ConfirmPassword = CpasswordController.text.trim();
     if (newPassword == "" || ConfirmPassword == "") {
@@ -271,161 +333,197 @@ class _EditProfilePageState extends State<EditProfilePage> {
           style: TextStyle(color: Colors.black),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundImage:
-                    (profilePic != null) ? FileImage(profilePic!) : null,
-                backgroundColor: Colors.black,
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              TextButton(
-                onPressed: updateProfilePic,
-                child: Text(
-                  "Edit Profile Picture",
-                  style: TextStyle(fontSize: 14, color: Colors.blue),
-                ),
-              ),
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          child: Center(
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: TextFormField(
-                        cursorColor: Colors.black,
-                        controller: nameController,
-                        onChanged: (value) {
-                          setState(() {
-                            isNameChanged = true;
-                          });
-                        },
-                        focusNode: nameFocusNode,
-                        decoration: InputDecoration(
-                          labelText: "Name",
-                          labelStyle: TextStyle(color: Colors.black),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
+                    Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          child: ClipOval(
+                            child: Image.network(
+                              user?.photoURL ??
+                                  'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
-                          focusColor: Colors.black,
-                          suffixIcon: isNameChanged
-                              ? IconButton(
-                                  icon: Icon(Icons.check),
-                                  onPressed: updateName,
-                                )
-                              : null,
                         ),
-                      ),
+                        TextButton(
+                          onPressed: updateProfilePic,
+                          child: Text(
+                            "Edit Profile Picture",
+                            style: TextStyle(fontSize: 14, color: Colors.blue),
+                          ),
+                        ),
+                      ],
                     ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          child: ClipOval(
+                            child: Image.network(
+                              viewPhotoUrl ??
+                                  'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: saveViewPhoto,
+                          child: Text(
+                            "Edit Grind Picture",
+                            style: TextStyle(fontSize: 14, color: Colors.blue),
+                          ),
+                        ),
+                      ],
+                    )
                   ],
                 ),
-              ),
-              SizedBox(height: 5),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  cursorColor: Colors.black,
-                  controller: usernameController,
-                  onChanged: (value) async {
-                    bool isUnique = await checkUsernameUniqueness(value);
-                    setState(() {
-                      isUsernameChanged = true;
-                      isUsernameUnique = isUnique;
-                    });
-                  },
-                  focusNode: usernameFocusNode,
-                  decoration: InputDecoration(
-                    labelText: "Username",
-                    labelStyle: TextStyle(color: Colors.black),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    focusColor: Colors.black,
-                    suffixIcon: isUsernameChanged
-                        ? IconButton(
-                            icon: Icon(Icons.check),
-                            onPressed: () => updateUsername(),
-                          )
-                        : null,
-                    suffixText: isUsernameChanged
-                        ? isUsernameUnique
-                            ? 'Available'
-                            : 'Not Available'
-                        : '',
-                    suffixStyle: TextStyle(
-                        color: isUsernameChanged
-                            ? isUsernameUnique
-                                ? Colors.green
-                                : Colors.red
-                            : Colors.transparent),
-                  ),
+                SizedBox(
+                  height: 10,
                 ),
-              ),
-              SizedBox(height: 5),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  cursorColor: Colors.black,
-                  controller: bioController,
-                  onChanged: (value) {
-                    setState(() {
-                      isBioChanged = true;
-                    });
-                  },
-                  focusNode: bioFocusNode,
-                  maxLength: 50,
-                  maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                  decoration: InputDecoration(
-                    labelText: "Bio",
-                    labelStyle: TextStyle(color: Colors.black),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    focusColor: Colors.black,
-                    suffixIcon: isBioChanged
-                        ? IconButton(
-                            icon: Icon(Icons.check),
-                            onPressed: updateBio,
-                          )
-                        : null,
-                  ),
-                ),
-              ),
-              SizedBox(height: 5),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: () async {
-                    await Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => AuthCheck()));
-                    // Additional code to execute after navigating (if needed)
-                  },
-                  child: const Text(
-                    'Change Password?',
-                    style: TextStyle(
-                      color: Colors.blue,
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Expanded(
+                    child: TextFormField(
+                      cursorColor: Colors.black,
+                      controller: nameController,
+                      onChanged: (value) {
+                        setState(() {
+                          isNameChanged = true;
+                        });
+                      },
+                      focusNode: nameFocusNode,
+                      decoration: InputDecoration(
+                        labelText: "Name",
+                        labelStyle: TextStyle(color: Colors.black),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(color: Colors.black),
+                        ),
+                        focusColor: Colors.black,
+                        suffixIcon: isNameChanged
+                            ? IconButton(
+                                icon: Icon(Icons.check),
+                                onPressed: updateName,
+                              )
+                            : null,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 5),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    cursorColor: Colors.black,
+                    controller: usernameController,
+                    onChanged: (value) async {
+                      bool isUnique = await checkUsernameUniqueness(value);
+                      setState(() {
+                        isUsernameChanged = true;
+                        isUsernameUnique = isUnique;
+                      });
+                    },
+                    focusNode: usernameFocusNode,
+                    decoration: InputDecoration(
+                      labelText: "Username",
+                      labelStyle: TextStyle(color: Colors.black),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusColor: Colors.black,
+                      suffixIcon: isUsernameChanged
+                          ? IconButton(
+                              icon: Icon(Icons.check),
+                              onPressed: () => updateUsername(),
+                            )
+                          : null,
+                      suffixText: isUsernameChanged
+                          ? isUsernameUnique
+                              ? 'Available'
+                              : 'Not Available'
+                          : '',
+                      suffixStyle: TextStyle(
+                          color: isUsernameChanged
+                              ? isUsernameUnique
+                                  ? Colors.green
+                                  : Colors.red
+                              : Colors.transparent),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 5),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    cursorColor: Colors.black,
+                    controller: bioController,
+                    onChanged: (value) {
+                      setState(() {
+                        isBioChanged = true;
+                      });
+                    },
+                    focusNode: bioFocusNode,
+                    maxLength: 50,
+                    maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                    decoration: InputDecoration(
+                      labelText: "Bio",
+                      labelStyle: TextStyle(color: Colors.black),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusColor: Colors.black,
+                      suffixIcon: isBioChanged
+                          ? IconButton(
+                              icon: Icon(Icons.check),
+                              onPressed: updateBio,
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 5),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () async {
+                      await Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => AuthCheck()));
+                      // Additional code to execute after navigating (if needed)
+                    },
+                    child: const Text(
+                      'Change Password?',
+                      style: TextStyle(
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

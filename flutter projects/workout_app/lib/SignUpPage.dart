@@ -42,11 +42,9 @@ class _SignUpPageState extends State<SignUpPage> {
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            primaryColor: Colors.black, // Set the color of the OK button
-            hintColor: Colors.black, // Set the color of the selected date
-            colorScheme: ColorScheme.light(
-                primary:
-                    Colors.black), // Set the color of the selected date text
+            primaryColor: Colors.black,
+            hintColor: Colors.black,
+            colorScheme: ColorScheme.light(primary: Colors.black),
             buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
           ),
           child: child!,
@@ -90,7 +88,6 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void createAccount() async {
-    // Implement your sign-up logic here
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
@@ -118,14 +115,14 @@ class _SignUpPageState extends State<SignUpPage> {
         await userCredential.user!.updateDisplayName(username);
 
         // Reload the user to get the updated information
-        await userCredential.user!.reload();
+        await userCredential.user!
+            .reload(); // used to reload the user information from Firebase Authentication after updating the display name
 
         // Access the updated display name
-        String displayName =
-            userCredential.user!.displayName ?? 'Default Display Name';
+        String displayName = userCredential.user!.displayName ?? '';
         print('User Display Name: $displayName');
         String? uid = userCredential.user?.uid;
-
+        //taking input from user to store in firebase
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'name': name,
           'age': age,
@@ -135,14 +132,15 @@ class _SignUpPageState extends State<SignUpPage> {
           'uid': uid,
           'username': username,
           'downloadUrl': '',
-          // Add any other user information you want to store
         }, SetOptions(merge: true));
-        _showSnackbar("User Created");
+        _showSnackbar(
+            "User Created"); //The merge: true option in is telling Firestore to merge the data with the existing document rather than overwriting it.
 
         if (userCredential.user != null) {
           try {
             UserCredential userCredential = await FirebaseAuth.instance
-                .signInWithEmailAndPassword(email: email, password: password);
+                .signInWithEmailAndPassword(
+                    email: email, password: password); //logging in the user
 
             if (userCredential.user == null) {
               _showSnackbar("Error while signUp");
@@ -163,9 +161,6 @@ class _SignUpPageState extends State<SignUpPage> {
         _showSnackbar(ex.code.toString());
       }
     }
-
-    // Add your sign-up validation and submission logic here
-    // For example, you can check if the passwords match, if the email is valid, etc.
   }
 
   Future<bool> isUsernameAvailable(String username) async {
@@ -361,7 +356,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     createAccount();
                   },
                   style: ElevatedButton.styleFrom(
-                    // Set the minimum width and height
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.black,
                     padding:

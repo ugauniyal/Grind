@@ -97,41 +97,8 @@ class _ChatDmUIState extends State<ChatDmUI> {
     );
   }
 
-  Widget _buildProfileInfo() {
-    return Container(
-      padding: EdgeInsets.all(8.0),
-      child: Card(
-        elevation: 2,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(
-                  widget.profilePicUrl ??
-                      'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
-                ),
-              ),
-              SizedBox(width: 8),
-              Text(
-                widget.receiverUserUsername,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-    // widget.receiverUserUsername
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -156,7 +123,7 @@ class _ChatDmUIState extends State<ChatDmUI> {
       ),
       body: Column(
         children: [
-          // _buildProfileInfo(),
+          //here
           Expanded(
             child: StreamBuilder(
               stream: _chatService.getMessages(
@@ -195,7 +162,7 @@ class _ChatDmUIState extends State<ChatDmUI> {
                         ListView.builder(
                           controller:
                               _scrollController, // Use the same controller
-                          shrinkWrap: true, // Adjust to the content size
+                          shrinkWrap: true,
                           itemCount: messageGroup.length,
                           reverse: true, // Set this to false for regular order
                           itemBuilder: (context, messageIndex) {
@@ -218,6 +185,7 @@ class _ChatDmUIState extends State<ChatDmUI> {
     );
   }
 
+//grouping messages date wise by storing same timestamp messages in a list
   List<List<DocumentSnapshot>> groupMessagesByDate(
       List<DocumentSnapshot> messages) {
     var groupedMessages = <List<DocumentSnapshot>>[];
@@ -248,7 +216,7 @@ class _ChatDmUIState extends State<ChatDmUI> {
         date1.day == date2.day;
   }
 
-  // Build message item
+  // Build message item showing sender messages in right side and receiver in left side
   Widget _buildMessageItem(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
 
@@ -297,7 +265,6 @@ class _ChatDmUIState extends State<ChatDmUI> {
     );
   }
 
-  // Build message input
   // Build message input
   Widget _buildMessageInput() {
     return Container(

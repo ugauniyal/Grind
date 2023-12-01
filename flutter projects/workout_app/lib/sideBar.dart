@@ -14,6 +14,7 @@ class NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<NavBar> {
+  //when the user clicks on sign out
   void LogOut() async {
     await FirebaseAuth.instance.signOut();
     Navigator.popUntil(context, (route) => route.isFirst);
@@ -26,7 +27,8 @@ class _NavBarState extends State<NavBar> {
   User? user = FirebaseAuth.instance.currentUser;
 
   void fetchBio() async {
-    String uid = user?.uid ?? '';
+    String uid = user?.uid ??
+        ''; //initializes a variable uid with the UID of the user if it exists, or an empty string if it doesn't.
     if (uid.isNotEmpty) {
       try {
         DocumentSnapshot<Map<String, dynamic>> snapshot =
@@ -40,9 +42,10 @@ class _NavBarState extends State<NavBar> {
     }
   }
 
+  //it's used to fetch the user's bio to ensure that the widget has the latest data.
   void initState() {
     super.initState();
-    fetchBio(); // Call the function to fetch bio when the widget initializes
+    fetchBio();
   }
 
   @override
@@ -57,7 +60,7 @@ class _NavBarState extends State<NavBar> {
               style: TextStyle(color: Colors.black),
             ),
             accountEmail: Text(
-              bio.isNotEmpty ? bio : '', // Display bio instead of email
+              bio.isNotEmpty ? bio : '',
               style: TextStyle(color: Colors.black),
             ),
             currentAccountPicture: CircleAvatar(
@@ -132,17 +135,13 @@ class _NavBarState extends State<NavBar> {
                 style: TextStyle(color: Colors.black),
               ),
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: Text('Yes', style: TextStyle(color: Colors.black)),
               onPressed: () {
                 LogOut();
-                // Perform logout actions here
-                // For example, you can call a function to handle logout
-                // logout();
-                // Close the dialog
               },
             ),
           ],

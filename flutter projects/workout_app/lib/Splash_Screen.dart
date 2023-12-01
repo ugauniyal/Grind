@@ -14,6 +14,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   @override
+  //function to check if user is logged in or not
   void checkLogIn(BuildContext context) async {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user == null) {
@@ -33,10 +34,11 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void initState() {
-    super.initState();
+    super.initState(); //
 
     Timer(const Duration(seconds: 3), () {
-      checkLogIn(context); // Call the function with the context here
+      checkLogIn(
+          context); //initializes after checking if the user is logged in or not, if yes home page is opened else log in screen
     });
   }
 

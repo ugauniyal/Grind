@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:workout_app/chatDmUI.dart';
 
 import 'BottomNagivationBar.dart';
+import 'chatDmUI.dart';
 
 void main() {
   runApp(ChatPage());
@@ -17,11 +17,70 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   User? user = FirebaseAuth.instance.currentUser;
 
+  //getting uid of friend users
   Future<String> _getFriendUid(DocumentSnapshot document) async {
     Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
     return data['uid'].toString();
   }
 
+//building list items which will be displayed in chat page, each item contains photo and name
+  Widget _buildUserListItem(DocumentSnapshot document) {
+    return FutureBuilder(
+      future: _getFriendUid(document),
+      builder: (context, friendUidSnapshot) {
+        if (friendUidSnapshot.connectionState == ConnectionState.waiting) {
+          return Text('Loading');
+        }
+
+        if (friendUidSnapshot.hasError) {
+          return Text('Error: ${friendUidSnapshot.error}');
+        }
+
+        String friendUid = friendUidSnapshot.data as String;
+
+        //Getting uids from requests collection which has uid,accepted,block,pending fields which defines the properties of friend
+        return StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(user?.uid)
+              .collection('requests')
+              .doc(friendUid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Text('Error');
+            }
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Text('Loading');
+            }
+
+            DocumentSnapshot<Map<String, dynamic>> requestSnapshot =
+                snapshot.data as DocumentSnapshot<Map<String, dynamic>>;
+
+            if (!requestSnapshot.exists) {
+              // Request document doesn't exist, handle accordingly
+              return Container();
+            }
+
+            //checking if conditions and only showing when the user is not blocked nor accepted
+
+            bool isBlocked = requestSnapshot.data()?['block'] ?? false;
+            bool isAccepted = requestSnapshot.data()?['accepted'] ?? false;
+
+            //checking if the user is not blocked and accepted
+            if (!isBlocked && isAccepted) {
+              return _buildUserWidget(friendUid);
+            } else {
+              return Container();
+            }
+          },
+        );
+      },
+    );
+  }
+
+  //retrieving data of user that are logged in user's friends
   Future<Map<String, dynamic>> _getUserData(String friendUid) async {
     CollectionReference userCollection =
         FirebaseFirestore.instance.collection('users');
@@ -31,86 +90,72 @@ class _ChatPageState extends State<ChatPage> {
         : {};
   }
 
-  Widget _buildUserListItem(DocumentSnapshot document) {
+  //showing friends list in chat page
+  Widget _buildUserWidget(String friendUid) {
     return FutureBuilder(
-      future: _getFriendUid(document),
-      builder: (context, friendUidSnapshot) {
-        if (friendUidSnapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+      future: _getUserData(friendUid),
+      builder: (context, userDataSnapshot) {
+        if (userDataSnapshot.connectionState == ConnectionState.waiting) {
+          return Text('loading');
         }
 
-        if (friendUidSnapshot.hasError) {
-          return Text('Error: ${friendUidSnapshot.error}');
+        if (userDataSnapshot.hasError) {
+          return Text('Error: ${userDataSnapshot.error}');
         }
 
-        String friendUid = friendUidSnapshot.data as String;
+        Map<String, dynamic> userData =
+            userDataSnapshot.data as Map<String, dynamic>;
 
-        return FutureBuilder(
-          future: _getUserData(friendUid),
-          builder: (context, userDataSnapshot) {
-            if (userDataSnapshot.connectionState == ConnectionState.waiting) {
-              return Text('loading');
-            }
+        if (userData.isEmpty) {
+          // User document does not exist
+          return Container();
+        }
 
-            if (userDataSnapshot.hasError) {
-              return Text('Error: ${userDataSnapshot.error}');
-            }
-
-            Map<String, dynamic> userData =
-                userDataSnapshot.data as Map<String, dynamic>;
-
-            if (userData.isEmpty) {
-              // User document does not exist
-              return Container();
-            }
-
-            return GestureDetector(
-              onTap: () {
-                // Handle tap event, navigate to ChatDmUI
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatDmUI(
-                      receiverUserUsername: userData['name'],
-                      receiverUserID: friendUid,
-                      profilePicUrl: userData['downloadUrl'] ??
-                          'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
-                    ),
-                  ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage(
-                        userData['downloadUrl'] ??
-                            'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
-                      ),
-                    ),
-                    SizedBox(width: 18),
-                    Text(
-                      userData['name'],
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 60, // Adjust the height between each user row
-                    ),
-                  ],
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatDmUI(
+                  receiverUserUsername: userData['name'],
+                  receiverUserID: friendUid,
+                  profilePicUrl: userData['downloadUrl'] ??
+                      'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
                 ),
               ),
             );
           },
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundImage: NetworkImage(
+                    userData['downloadUrl'] ??
+                        'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                  ),
+                ),
+                SizedBox(width: 18),
+                Text(
+                  userData['name'],
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(
+                  height: 60, // Adjust the height between each user row
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
   }
 
+  //Retrieving data from request collection and giving it to build user list item
   Widget _buildUserList() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
