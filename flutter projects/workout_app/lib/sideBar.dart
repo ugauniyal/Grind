@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_app/Gym_Buddies_List.dart';
 import 'package:workout_app/Need_Help.dart';
 import 'package:workout_app/SettingPage.dart';
@@ -22,30 +23,57 @@ class _NavBarState extends State<NavBar> {
         context, MaterialPageRoute(builder: (context) => LoginScreen()));
   }
 
-  String bio = '';
-
   User? user = FirebaseAuth.instance.currentUser;
 
-  void fetchBio() async {
-    String uid = user?.uid ??
-        ''; //initializes a variable uid with the UID of the user if it exists, or an empty string if it doesn't.
+  String cachedBio = '';
+  String cachedProfilePictureUrl = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // Load cached bio data when the widget is created
+    loadCachedBio();
+    fetchBio();
+  }
+
+  Future<void> loadCachedBio() async {
+    try {
+      print('Loading cached bio...');
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // Check if the key 'bio' exists
+      bool bioKeyExists = prefs.containsKey('bio');
+      print('Key "bio" exists: $bioKeyExists');
+
+      // Fetch the bio value
+      cachedBio = prefs.getString('bio') ?? '';
+      print('Cached Bio: $cachedBio');
+
+      setState(() {});
+    } catch (e) {
+      print('Error loading cached bio: $e');
+    }
+  }
+
+  Future<void> fetchBio() async {
+    String uid = user?.uid ?? '';
     if (uid.isNotEmpty) {
       try {
         DocumentSnapshot<Map<String, dynamic>> snapshot =
             await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        String bio = snapshot.data()?['bio'] ?? '';
+
+        // Cache the bio data in shared preferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('bio', bio);
+
         setState(() {
-          bio = snapshot.data()?['bio'] ?? '';
+          cachedBio = bio;
         });
       } catch (e) {
         print('Error fetching bio: $e');
       }
     }
-  }
-
-  //it's used to fetch the user's bio to ensure that the widget has the latest data.
-  void initState() {
-    super.initState();
-    fetchBio();
   }
 
   @override
@@ -57,10 +85,11 @@ class _NavBarState extends State<NavBar> {
           UserAccountsDrawerHeader(
             accountName: Text(
               user?.displayName ?? '',
-              style: TextStyle(color: Colors.black),
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
             ),
             accountEmail: Text(
-              bio.isNotEmpty ? bio : '',
+              cachedBio,
               style: TextStyle(color: Colors.black),
             ),
             currentAccountPicture: CircleAvatar(

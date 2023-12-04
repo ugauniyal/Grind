@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:progress_dialog_null_safe/progress_dialog_null_safe.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_app/AuthCheck.dart';
 import 'package:workout_app/BottomNagivationBar.dart';
@@ -146,49 +147,61 @@ class _EditProfilePageState extends State<EditProfilePage> {
       setState(() {
         profilePic = convertedFile;
       });
-      _showSnackbar('Profile Image Updated');
+
+      // Upload the new profile picture to Firebase Storage
+      ProgressDialog progressDialog = ProgressDialog(context);
+      progressDialog.style(
+        message: 'Uploading Profile Picture',
+      );
+
+      try {
+        progressDialog.show();
+        UploadTask uploadTask = FirebaseStorage.instance
+            .ref()
+            .child("ProfilePictures_folder")
+            .child(Uuid().v1())
+            .putFile(profilePic!);
+
+        TaskSnapshot taskSnapshot = await uploadTask;
+        String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+
+        // Update the user's photoURL in Firebase Authentication
+        await user?.updatePhotoURL(downloadUrl);
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'downloadUrl': downloadUrl,
+        });
+
+        // Ensure the user information is refreshed
+        await user?.reload();
+
+        // Access the refreshed user information
+        User? updatedUser = FirebaseAuth.instance.currentUser;
+
+        // Update the user variable to trigger a rebuild
+        setState(() {
+          user = updatedUser;
+        });
+
+        // Perform any additional update logic here
+
+        _showSnackbar('Profile Picture Uploaded');
+      } catch (error) {
+        _showSnackbar('Error updating profile picture');
+      } finally {
+        progressDialog
+            .hide(); // Hide loading screen whether upload succeeded or failed
+      }
     } else {
       print("No image selected");
-      return;
-    }
-
-    // Upload the new profile picture to Firebase Storage
-    UploadTask uploadTask = FirebaseStorage.instance
-        .ref()
-        .child("ProfilePictures_folder")
-        .child(Uuid().v1())
-        .putFile(profilePic!);
-
-    TaskSnapshot taskSnapshot = await uploadTask;
-    String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-
-    // Update the user's photoURL in Firebase Authentication
-    try {
-      await user?.updatePhotoURL(downloadUrl);
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'downloadUrl': downloadUrl,
-      });
-
-      // Ensure the user information is refreshed
-      await user?.reload();
-
-      // Access the refreshed user information
-      User? updatedUser = FirebaseAuth.instance.currentUser;
-
-      // Update the user variable to trigger a rebuild
-      setState(() {
-        user = updatedUser;
-      });
-
-      // Perform any additional update logic here
-
-      _showSnackbar('profile Picture Uploaded');
-    } catch (error) {
-      _showSnackbar('Error updating profile picture');
     }
   }
 
   void saveViewPhoto() async {
+    ProgressDialog progressDialog = ProgressDialog(context);
+    progressDialog.style(
+      message: 'Uploading Grind picture',
+    );
+
     User? user = FirebaseAuth.instance.currentUser;
     String uid = user?.uid ?? '';
     XFile? selectedImage =
@@ -196,9 +209,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     if (selectedImage != null) {
       File convertedFile = File(selectedImage.path);
+      progressDialog.show();
 
       try {
-        // Image is being uploaded
         UploadTask uploadTask = FirebaseStorage.instance
             .ref()
             .child("ViewerPictures_folder")
@@ -227,6 +240,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
       } catch (error) {
         print("Error uploading image: $error");
         _showSnackbar('Error uploading image');
+        // } finally {
+        //   // Delay hiding the loading indicator to ensure it's visible for a short period
+        //   Future.delayed(Duration(milliseconds: 500), () {
+        //     progressDialog.hide();
+        //   });
       }
     } else {
       _showSnackbar('No image selected');
@@ -355,7 +373,36 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           ),
                         ),
                         TextButton(
-                          onPressed: updateProfilePic,
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    ListTile(
+                                      leading: Icon(Icons.photo),
+                                      title: Text('Change current Photo'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context); // Close the bottom sheet
+                                        updateProfilePic(); // Call your function to change photo
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: Icon(Icons.delete),
+                                      title: Text('Delete Current Photo'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context); // Close the bottom sheet
+                                        // deleteProfilePic(); // Call your function to delete photo
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
                           child: Text(
                             "Edit Profile Picture",
                             style: TextStyle(fontSize: 14, color: Colors.blue),
@@ -379,14 +426,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           ),
                         ),
                         TextButton(
-                          onPressed: saveViewPhoto,
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    ListTile(
+                                      leading: Icon(Icons.photo),
+                                      title: Text('Change Photo'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context); // Close the bottom sheet
+                                        saveViewPhoto(); // Call your function to change photo
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: Icon(Icons.delete),
+                                      title: Text('Delete Current Photo'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context); // Close the bottom sheet
+                                        // deleteViewPhoto(); // Call your function to delete photo
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
                           child: Text(
                             "Edit Grind Picture",
                             style: TextStyle(fontSize: 14, color: Colors.blue),
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
                 SizedBox(

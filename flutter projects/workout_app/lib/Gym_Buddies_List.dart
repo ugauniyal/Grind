@@ -44,6 +44,8 @@ class GymBuddies extends StatefulWidget {
 }
 
 class _GymBuddiesState extends State<GymBuddies> {
+  User? user = FirebaseAuth.instance.currentUser;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -206,45 +208,83 @@ class _GymBuddiesState extends State<GymBuddies> {
                                         ),
                                       Spacer(), // Add Spacer to push icons to the right
                                       GestureDetector(
-                                        onTap: () {
-                                          FirebaseFirestore.instance
+                                        onTap: () async {
+                                          String loggedInUserId = authSnapshot
+                                              .data!
+                                              .uid; // Logged-in user's UID
+                                          String otherUserId =
+                                              uid; // UID of the other user
+
+                                          // Remove the request from the logged-in user's collection
+                                          await FirebaseFirestore.instance
                                               .collection('users')
-                                              .doc(authSnapshot.data!
-                                                  .uid) // Assuming the logged-in user's UID
+                                              .doc(loggedInUserId)
                                               .collection('requests')
-                                              .doc(
-                                                  uid) // UID of the user to be removed
+                                              .doc(otherUserId)
+                                              .delete();
+
+                                          // Remove the request from the other user's collection
+                                          await FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(otherUserId)
+                                              .collection('requests')
+                                              .doc(loggedInUserId)
                                               .delete();
                                         },
                                         child: const Icon(
-                                          Icons
-                                              .clear, // Replace with the icon you want for the cross
-                                          color: Colors
-                                              .red, // Set the color as needed
+                                          Icons.clear,
+                                          color: Colors.red,
                                         ),
                                       ),
+
                                       SizedBox(
                                           width:
                                               10), // Add some spacing between icons
                                       GestureDetector(
-                                        onTap: () {
-                                          FirebaseFirestore.instance
-                                              .collection('users')
-                                              .doc(authSnapshot.data!
-                                                  .uid) // Assuming the logged-in user's UID
+                                        onTap: () async {
+                                          final userUid =
+                                              authSnapshot.data!.uid;
+                                          final requestCollection =
+                                              FirebaseFirestore.instance
+                                                  .collection('users');
+
+                                          // Update the logged-in user's request
+                                          await requestCollection
+                                              .doc(userUid)
                                               .collection('requests')
-                                              .doc(
-                                                  uid) // UID of the user to be removed
-                                              .update({
-                                            'accepted': true,
-                                            'pending': false,
-                                          });
+                                              .doc(uid)
+                                              .set(
+                                                  {
+                                                'accepted': true,
+                                                'pending': false,
+                                                'block': false,
+                                                'uid': uid,
+                                                'swipe': false
+                                              },
+                                                  SetOptions(
+                                                      merge:
+                                                          true)); // Use merge to create the document if it doesn't exist
+
+                                          // Update the other user's request
+                                          await requestCollection
+                                              .doc(uid)
+                                              .collection('requests')
+                                              .doc(userUid)
+                                              .set(
+                                                  {
+                                                'accepted': true,
+                                                'pending': false,
+                                                'block': false,
+                                                'uid': userUid,
+                                                'swipe': false
+                                              },
+                                                  SetOptions(
+                                                      merge:
+                                                          true)); // Use merge to create the document if it doesn't exist
                                         },
                                         child: Icon(
-                                          Icons
-                                              .check, // Replace with the icon you want for the tick
-                                          color: Colors
-                                              .green, // Set the color as needed
+                                          Icons.check,
+                                          color: Colors.green,
                                         ),
                                       ),
                                     ],
@@ -370,14 +410,38 @@ class _GymBuddiesState extends State<GymBuddies> {
                                             leading: Icon(Icons.remove_circle,
                                                 color: Colors.red),
                                             title: Text('Remove Friend'),
-                                            onTap: () {
-                                              FirebaseFirestore.instance
-                                                  .collection('users')
-                                                  .doc(authSnapshot.data!.uid)
-                                                  .collection('requests')
-                                                  .doc(
-                                                      friendUid) // Use the friend's UID
-                                                  .delete();
+                                            onTap: () async {
+                                              String loggedInUserId = user
+                                                  .uid; // Logged-in user's UID
+                                              String otherUserId =
+                                                  friendUid; // UID of the other user
+                                              print(friendUid);
+                                              try {
+                                                // Remove the friend from the logged-in user's request collection
+                                                await FirebaseFirestore.instance
+                                                    .collection('users')
+                                                    .doc(loggedInUserId)
+                                                    .collection('requests')
+                                                    .doc(otherUserId)
+                                                    .delete();
+                                              } catch (e) {
+                                                print(
+                                                    'Error removing friend from logged-in user\'s requests: $e');
+                                              }
+
+                                              try {
+                                                // Remove the friend from the other user's request collection
+                                                await FirebaseFirestore.instance
+                                                    .collection('users')
+                                                    .doc(otherUserId)
+                                                    .collection('requests')
+                                                    .doc(loggedInUserId)
+                                                    .delete();
+                                              } catch (e) {
+                                                print(
+                                                    'Error removing friend from other user\'s requests: $e');
+                                              }
+
                                               Navigator.pop(context);
                                             },
                                           ),
@@ -458,15 +522,42 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                         color: Colors.red),
                                                     title:
                                                         Text('Remove Friend'),
-                                                    onTap: () {
-                                                      FirebaseFirestore.instance
-                                                          .collection('users')
-                                                          .doc(authSnapshot
-                                                              .data!.uid)
-                                                          .collection(
-                                                              'requests')
-                                                          .doc(friendUid)
-                                                          .delete();
+                                                    onTap: () async {
+                                                      String loggedInUserId = user
+                                                          .uid; // Logged-in user's UID
+                                                      String otherUserId =
+                                                          friendUid; // UID of the other user
+                                                      print(friendUid);
+                                                      try {
+                                                        // Remove the friend from the logged-in user's request collection
+                                                        await FirebaseFirestore
+                                                            .instance
+                                                            .collection('users')
+                                                            .doc(loggedInUserId)
+                                                            .collection(
+                                                                'requests')
+                                                            .doc(otherUserId)
+                                                            .delete();
+                                                      } catch (e) {
+                                                        print(
+                                                            'Error removing friend from logged-in user\'s requests: $e');
+                                                      }
+
+                                                      try {
+                                                        // Remove the friend from the other user's request collection
+                                                        await FirebaseFirestore
+                                                            .instance
+                                                            .collection('users')
+                                                            .doc(otherUserId)
+                                                            .collection(
+                                                                'requests')
+                                                            .doc(loggedInUserId)
+                                                            .delete();
+                                                      } catch (e) {
+                                                        print(
+                                                            'Error removing friend from other user\'s requests: $e');
+                                                      }
+
                                                       Navigator.pop(context);
                                                     },
                                                   ),
@@ -546,19 +637,49 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                                   Colors.red),
                                                           title: Text(
                                                               'Remove Friend'),
-                                                          onTap: () {
-                                                            FirebaseFirestore
-                                                                .instance
-                                                                .collection(
-                                                                    'users')
-                                                                .doc(
-                                                                    authSnapshot
-                                                                        .data!
-                                                                        .uid)
-                                                                .collection(
-                                                                    'requests')
-                                                                .doc(friendUid)
-                                                                .delete();
+                                                          onTap: () async {
+                                                            String
+                                                                loggedInUserId =
+                                                                user.uid; // Logged-in user's UID
+                                                            String otherUserId =
+                                                                friendUid; // UID of the other user
+                                                            print(friendUid);
+                                                            try {
+                                                              // Remove the friend from the logged-in user's request collection
+                                                              await FirebaseFirestore
+                                                                  .instance
+                                                                  .collection(
+                                                                      'users')
+                                                                  .doc(
+                                                                      loggedInUserId)
+                                                                  .collection(
+                                                                      'requests')
+                                                                  .doc(
+                                                                      otherUserId)
+                                                                  .delete();
+                                                            } catch (e) {
+                                                              print(
+                                                                  'Error removing friend from logged-in user\'s requests: $e');
+                                                            }
+
+                                                            try {
+                                                              // Remove the friend from the other user's request collection
+                                                              await FirebaseFirestore
+                                                                  .instance
+                                                                  .collection(
+                                                                      'users')
+                                                                  .doc(
+                                                                      otherUserId)
+                                                                  .collection(
+                                                                      'requests')
+                                                                  .doc(
+                                                                      loggedInUserId)
+                                                                  .delete();
+                                                            } catch (e) {
+                                                              print(
+                                                                  'Error removing friend from other user\'s requests: $e');
+                                                            }
+
                                                             Navigator.pop(
                                                                 context);
                                                           },

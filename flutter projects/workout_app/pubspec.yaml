@@ -44,6 +44,7 @@ dependencies:
   provider: ^6.0.1
   swipe_cards: ^2.0.0+1
 
+
   flutter_lints: ^3.0.1
   firebase_core: ^2.23.0
   firebase_auth: ^4.14.0
@@ -53,6 +54,13 @@ dependencies:
   cloud_firestore: ^4.13.2
   intl: ^0.18.1
   google_sign_in: ^6.1.6
+  shared_preferences: ^2.2.2
+  progress_dialog_null_safe: ^1.0.7
+  image_cropper: ^5.0.1
+  appinio_swiper: ^2.1.0
+  cached_network_image: ^3.3.0
+
+
 
 dev_dependencies:
   flutter_test:

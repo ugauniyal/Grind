@@ -1,256 +1,230 @@
+import 'dart:async';
+import 'dart:developer';
+
+import 'package:appinio_swiper/appinio_swiper.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:swipe_cards/draggable_card.dart';
-import 'package:swipe_cards/swipe_cards.dart';
 
-import 'model/user.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class Content {
-  final String text;
-  final Color color;
-
-  Content({required this.text, required this.color});
-}
-
-class SwipeCard extends StatefulWidget {
+class GymBuddy extends StatefulWidget {
   @override
-  _SwipeCardState createState() => _SwipeCardState();
+  _GymBuddyState createState() => _GymBuddyState();
 }
 
-class _SwipeCardState extends State<SwipeCard> {
-  User? _user = FirebaseAuth.instance.currentUser;
-  TextEditingController _searchController = TextEditingController();
-  List<UserCollection> _searchResults = [];
-  List<SwipeItem> _swipeItems = [];
-  late MatchEngine _matchEngine;
-  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
-
-  List<String> _names = ["Red", "Blue", "Green", "Yellow", "Orange"];
-  List<Color> _colors = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.yellow,
-    Colors.orange,
-  ];
+class _GymBuddyState extends State<GymBuddy> {
+  final AppinioSwiperController controller = AppinioSwiperController();
+  late User _user;
+  List<UserData> _filteredUsers = [];
+  String? viewPhotoUrl;
+  bool _loadingMoreUsers = false;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _requestsSubscription;
 
   @override
   void initState() {
     super.initState();
-    for (int i = 0; i < _names.length; i++) {
-      _swipeItems.add(SwipeItem(
-        content: Content(text: _names[i], color: _colors[i]),
-        likeAction: () {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("Request Sent to ${_names[i]}"),
-            duration: Duration(milliseconds: 500),
-          ));
-        },
-        nopeAction: () {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("Rejected ${_names[i]}"),
-            duration: Duration(milliseconds: 500),
-          ));
-        },
-        onSlideUpdate: (SlideRegion? region) {
-          print("Region $region");
-          return Future<void>.value();
-        },
-      ));
-    }
-
-    _matchEngine = MatchEngine(swipeItems: _swipeItems);
+    _user = FirebaseAuth.instance.currentUser!;
+    _loadFilteredUsers();
   }
 
-  void _searchUsers(String query) {
-    FirebaseFirestore.instance
-        .collection('users')
-        .where('name', isGreaterThanOrEqualTo: query)
-        .where('name', isLessThan: query + 'z')
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      List<UserCollection> searchResults = [];
-      querySnapshot.docs.forEach((doc) {
-        var userData = doc.data() as Map<String, dynamic>;
-        searchResults.add(UserCollection(
-          id: doc.id,
-          name: userData['name'],
-          email: userData['email'],
-        ));
-      });
-      _displaySearchResults(searchResults);
-    });
+  @override
+  void dispose() {
+    // Cancel the subscription to avoid memory leaks
+    _requestsSubscription?.cancel();
+    super.dispose();
   }
 
-  void _displaySearchResults(List<UserCollection> searchResults) {
+  Future<void> _loadFilteredUsers() async {
+    // Query the 'requests' subcollection for the logged-in user where pending = true
+    QuerySnapshot<Map<String, dynamic>> requestsSnapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user.uid)
+            .collection('requests')
+            .where('pending', isEqualTo: true)
+            .get();
+
+    // Get the list of swiped user IDs
+    List<String> swipedUserIds = requestsSnapshot.docs
+        .where((userDoc) => userDoc['swiped'] == true)
+        .map((swipedUserDoc) => swipedUserDoc.id)
+        .toList();
+
+    // Query all users excluding the swiped ones and the logged-in user
+    QuerySnapshot<Map<String, dynamic>> allUsersSnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
+
+    _filteredUsers = allUsersSnapshot.docs
+        .where((userDoc) =>
+            !swipedUserIds.contains(userDoc.id) && userDoc.id != _user.uid)
+        .map((userDoc) => UserData.fromMap(userDoc.data()))
+        .toList();
+
     setState(() {
-      _searchResults = searchResults;
+      _filteredUsers = _filteredUsers;
     });
-  }
-
-  void _onUserTap(UserCollection user) {
-    // Save user data to Firestore
-    String? uid = _user?.uid;
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.id)
-        .collection('requests')
-        .doc(uid)
-        .set({'uid': uid, 'pending': true, 'accepted': false, 'block': false});
-
-    // You can show a confirmation message or perform any other action here
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Selected ${user.name}"),
-      duration: Duration(milliseconds: 500),
-    ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white54,
-        iconTheme: IconThemeData(color: Colors.black),
-        title: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: 'Search users',
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                String query = _searchController.text;
-                _searchUsers(query);
-              },
-              child: Text('Search'),
-            ),
-          ],
-        ),
-        automaticallyImplyLeading: false,
+        title: Text('Gym Buddy App'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _searchResults.isNotEmpty
-                ? ListView.builder(
-                    itemCount: _searchResults.length,
-                    itemBuilder: (context, index) {
-                      UserCollection user = _searchResults[index];
-                      return ListTile(
-                        title: Text(user.name),
-                        subtitle: Text(user.email),
-                        onTap: () {
-                          // Handle the tap event on the searched user
-                          _onUserTap(user);
-                        },
-                      );
-                    },
-                  )
-                : Container(
-                    margin: EdgeInsets.symmetric(vertical: 20),
-                    child: SwipeCards(
-                      matchEngine: _matchEngine,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: _swipeItems[index].content.color,
-                            borderRadius: BorderRadius.circular(15.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 1,
-                                blurRadius: 10,
-                                offset: Offset(0, 3),
+      body: _filteredUsers.length > 0
+          ? AppinioSwiper(
+              controller: controller,
+              cardCount: _filteredUsers.length,
+              onSwipeEnd: _swipeEnd,
+              onEnd: _onEnd,
+              cardBuilder: (BuildContext context, int index) {
+                double cardHeight = MediaQuery.of(context).size.height * 0.6;
+                return Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text(_filteredUsers[index].name),
+                      ),
+                      // Display the user image using CachedNetworkImage
+                      FutureBuilder<String>(
+                        future: _getUserImage(_filteredUsers[index].uid),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            return CachedNetworkImage(
+                              imageUrl: snapshot.data ??
+                                  'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                              height: cardHeight,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Center(
+                                child: Text('Loading'),
                               ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            _swipeItems[index].content.text,
-                            style: TextStyle(
-                              fontSize: 50,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      },
-                      onStackFinished: () {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text("Stack Finished"),
-                          duration: Duration(milliseconds: 500),
-                        ));
-                      },
-                      itemChanged: (SwipeItem item, int index) {
-                        print("item: ${item.content.text}, index: $index");
-                      },
-                      upSwipeAllowed: false,
-                      fillSpace: true,
-                    ),
+                              errorWidget: (context, url, error) =>
+                                  Text('Error loading image'),
+                            );
+                          } else if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(
+                              child: Text('Loading'),
+                            );
+                          } else {
+                            return Text('Error loading image');
+                          }
+                        },
+                      ),
+                    ],
                   ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _matchEngine.currentItem?.nope();
-                },
-                child: Text("Reject"),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.red, // Text color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+                );
+              },
+            )
+          : _loadingMoreUsers
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 8),
+                      Text('Loading more users...'),
+                    ],
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  elevation: 5,
+                )
+              : Center(
+                  child: Text('Loading'),
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _matchEngine.currentItem?.like();
-                },
-                child: Text("Send Request"),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.green, // Text color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  elevation: 5,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+    );
+  }
+
+  Future<String> _getUserImage(String uid) async {
+    DocumentSnapshot<Map<String, dynamic>> userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    String updatedDownloadUrl = userDoc.get('downloadUrl1');
+
+    return updatedDownloadUrl;
+  }
+
+  Future<void> _swipeEnd(
+      int previousIndex, int targetIndex, SwiperActivity activity) async {
+    String? uid = _user?.uid;
+
+    if (activity is Swipe) {
+      log('The card was swiped to the : ${activity.direction}');
+      log('previous index: $previousIndex, target index: $targetIndex');
+
+      try {
+        // Create or update the request collection for the logged-in user
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('requests')
+            .doc(_filteredUsers[previousIndex].uid)
+            .set({
+          'uid': _filteredUsers[previousIndex].uid,
+          'pending': true,
+          'accepted': false,
+          'block': false,
+          'swiped': true,
+        }, SetOptions(merge: true));
+
+        // Create or update the request collection for the other user
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_filteredUsers[previousIndex].uid)
+            .collection('requests')
+            .doc(uid)
+            .set({
+          'uid': uid,
+          'pending': true,
+          'accepted': false,
+          'block': false,
+          'swiped': true,
+        }, SetOptions(merge: true));
+      } catch (e) {
+        print('Error updating requests: $e');
+      }
+
+      for (int i = 0; i < _filteredUsers.length; i++) {
+        print(_filteredUsers[i].name.toString());
+      }
+    } else {
+      // Handle other swipe activities if needed
+    }
+  }
+
+  void _onEnd() {
+    log('end reached!');
+  }
+}
+
+class UserData {
+  final String uid;
+  final String name;
+  final String? photoUrl;
+
+  UserData({
+    required this.uid,
+    required this.name,
+    this.photoUrl,
+  });
+
+  factory UserData.fromMap(Map<String, dynamic> map) {
+    return UserData(
+      uid: map['uid'] ?? '',
+      name: map['name'] ?? '',
+      photoUrl: map['photoUrl'] ??
+          '', // Provide a default value or handle null appropriately
     );
   }
 }
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Swipe Cards Example',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: SwipeCard(),
-    );
-  }
+void main() {
+  runApp(MaterialApp(
+    home: GymBuddy(),
+  ));
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:workout_app/GymBuddyPage.dart';
 import 'package:workout_app/Home_Page.dart';
 
 import 'Explore_Page.dart';
+import 'GymBuddyPage.dart';
 
 class Nav extends StatefulWidget {
   Nav({Key? key}) : super(key: key);
@@ -57,7 +57,7 @@ class _NavState extends State<Nav> {
       case 0:
         return MyHomePage(); // Replace with your home page content.
       case 1:
-        return SwipeCard();
+        return GymBuddy();
       case 2:
         return ExplorePage();
       // Replace with your Explore page.
