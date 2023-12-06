@@ -259,7 +259,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                 'pending': false,
                                                 'block': false,
                                                 'uid': uid,
-                                                'swipe': false
+                                                'swiped': true
                                               },
                                                   SetOptions(
                                                       merge:
@@ -276,7 +276,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                 'pending': false,
                                                 'block': false,
                                                 'uid': userUid,
-                                                'swipe': false
+                                                'swiped': true
                                               },
                                                   SetOptions(
                                                       merge:

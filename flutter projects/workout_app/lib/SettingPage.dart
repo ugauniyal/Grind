@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:workout_app/EditProfilePage.dart';
@@ -10,7 +11,27 @@ class SettingsOnePage extends StatefulWidget {
 }
 
 class _SettingsOnePageState extends State<SettingsOnePage> {
-  List<String> interests = [];
+  List<String> selectedInterests = [];
+
+  List<String> availableInterests = [
+    'Running/Jogging',
+    'Weightlifting',
+    'Yoga',
+    'Cycling',
+    'Swimming',
+    'CrossFit',
+    'Zumba',
+    'Home Workout',
+    'Powerlifting',
+    'HIIT',
+    'Dance',
+    'Hiking',
+    'Meditation',
+    'Gymnastics',
+    'Athletes'
+  ];
+
+  TextEditingController _interestController = TextEditingController();
 
   bool enableDiscovery = true;
   bool sendReadReceipt = true;
@@ -37,20 +58,49 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
   bool isInterestExpanded = false;
 
   Widget _buildInterestsList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: interests.length,
-      itemBuilder: (context, index) {
-        return InterestItem(title: interests[index]);
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Select up to 5 Interests:',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 8),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
+          children: availableInterests.map((interest) {
+            bool isSelected = selectedInterests.contains(interest);
+            return FilterChip(
+              label: Text(interest),
+              selected: isSelected,
+              onSelected: (bool selected) {
+                setState(() {
+                  if (selected) {
+                    if (selectedInterests.length < 5) {
+                      selectedInterests.add(interest);
+                    } else {
+                      // Notify the user that they can't select more than 5 interests
+                      _showMaxInterestsPopup(context, selectedInterests);
+                    }
+                  } else {
+                    selectedInterests.remove(interest);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+        SizedBox(height: 8),
+      ],
     );
   }
 
-  Widget _buildAddInterestButton() {
+  Widget _buildAddInterestButton(BuildContext context) {
     return ListTile(
       title: ElevatedButton(
         onPressed: () {
-          _showAddInterestDialog(context);
+          _addUserInterest();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
@@ -61,46 +111,125 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
     );
   }
 
-  void _showAddInterestDialog(BuildContext context) {
-    TextEditingController _interestController = TextEditingController();
+  void _addUserInterest() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Fetch current interests
+        List<String> currentInterests = List.from(selectedInterests);
 
+        // Update user interests in Firebase
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'interests': currentInterests});
+
+        // Update the local state
+        setState(() {
+          selectedInterests = currentInterests;
+        });
+
+        // Show a success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Interest added successfully!'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (error) {
+      // Handle the error
+      print('Error adding interest: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add interest. Please try again.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _showMaxInterestsPopup(
+      BuildContext context, List<String> selectedInterests) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Add Interest", style: TextStyle(color: Colors.black)),
-          content: TextField(
-            controller: _interestController,
-            decoration: InputDecoration(labelText: 'Enter interest'),
+          title: Text(
+            "Max Interests Reached",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black, // Customize the color
+            ),
+          ),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "You can only select up to 5 interests.",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                "Selected Interests:",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: selectedInterests
+                    .map(
+                      (interest) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              interest,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Cancel', style: TextStyle(color: Colors.black)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                String enteredInterest = _interestController.text.trim();
-                if (enteredInterest.isNotEmpty) {
-                  interests.add(enteredInterest);
-                  setState(() {});
-                  Navigator.pop(context);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please enter an interest'),
-                    ),
-                  );
-                }
+                Navigator.pop(context); // Close the popup
               },
               child: Text(
-                'Add',
-                style: TextStyle(color: Colors.black),
+                'OK',
+                style: TextStyle(
+                  color: Colors.blue, // Customize the color
+                  fontSize: 16,
+                ),
               ),
             ),
           ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Colors.white, // Customize the background color
+          elevation: 8,
         );
       },
     );
@@ -478,7 +607,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                         },
                         children: <Widget>[
                           _buildInterestsList(),
-                          _buildAddInterestButton(),
+                          _buildAddInterestButton(context),
                         ],
                       ),
                     ],
@@ -518,32 +647,6 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                 ),
                 const SizedBox(
                   height: 5.0,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Text(
-                    "Read Receipt",
-                    style: TextStyle(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.indigo,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: SwitchListTile(
-                      dense: true,
-                      activeColor: Colors.black,
-                      contentPadding: const EdgeInsets.all(0),
-                      value: sendReadReceipt,
-                      title: Text('Send Read Receipt',
-                          style: TextStyle(fontSize: 13)),
-                      onChanged: (val) {
-                        setState(() {
-                          sendReadReceipt = val;
-                        });
-                      }),
                 ),
                 const SizedBox(
                   height: 5.0,

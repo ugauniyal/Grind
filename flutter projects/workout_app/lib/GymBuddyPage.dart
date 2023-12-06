@@ -35,6 +35,28 @@ class _GymBuddyState extends State<GymBuddy> {
     super.dispose();
   }
 
+  List<String> interestList = [];
+
+  getData(int index) {
+    try {
+      dynamic interestsData = _filteredUsers[index].interests;
+      print(interestsData);
+
+      if (interestsData is List<dynamic>) {
+        List<String> userInterestList =
+            interestsData.map((interest) => interest.toString()).toList();
+
+        setState(() {
+          interestList = userInterestList;
+        });
+      } else {
+        print('Invalid format for interests data.');
+      }
+    } catch (e) {
+      print('Error retrieving data: $e');
+    }
+  }
+
   Future<void> _loadFilteredUsers() async {
     // Query the 'requests' subcollection for the logged-in user where pending = true
     QuerySnapshot<Map<String, dynamic>> requestsSnapshot =
@@ -42,7 +64,7 @@ class _GymBuddyState extends State<GymBuddy> {
             .collection('users')
             .doc(_user.uid)
             .collection('requests')
-            .where('pending', isEqualTo: true)
+            .where('pending', isEqualTo: false)
             .get();
 
     // Get the list of swiped user IDs
@@ -69,9 +91,6 @@ class _GymBuddyState extends State<GymBuddy> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Gym Buddy App'),
-      ),
       body: _filteredUsers.length > 0
           ? AppinioSwiper(
               controller: controller,
@@ -79,7 +98,18 @@ class _GymBuddyState extends State<GymBuddy> {
               onSwipeEnd: _swipeEnd,
               onEnd: _onEnd,
               cardBuilder: (BuildContext context, int index) {
+                String userDob = _filteredUsers[index].age;
+                DateTime userAge = DateTime.parse(userDob);
+                DateTime currentDate = DateTime.now();
+                int age = currentDate.year - userAge.year;
+                if (currentDate.month < userAge.month ||
+                    currentDate.month == userAge.month &&
+                        currentDate.day < userAge.day) {
+                  age--;
+                }
                 double cardHeight = MediaQuery.of(context).size.height * 0.6;
+                String allInterests =
+                    _filteredUsers[index].interests.join(', ');
                 return Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
@@ -89,7 +119,19 @@ class _GymBuddyState extends State<GymBuddy> {
                     children: [
                       ListTile(
                         title: Text(_filteredUsers[index].name),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('$age years'),
+                            Text(_filteredUsers[index].bio),
+
+                            // Display all interests in a single line
+                            if (_filteredUsers[index].interests.isNotEmpty)
+                              Text('Interests: $allInterests'),
+                          ],
+                        ),
                       ),
+
                       // Display the user image using CachedNetworkImage
                       FutureBuilder<String>(
                         future: _getUserImage(_filteredUsers[index].uid),
@@ -205,20 +247,28 @@ class _GymBuddyState extends State<GymBuddy> {
 class UserData {
   final String uid;
   final String name;
+  final String age;
   final String? photoUrl;
+  final String bio;
 
+  final List<String> interests;
   UserData({
     required this.uid,
     required this.name,
+    required this.age,
+    required this.bio,
     this.photoUrl,
+    required this.interests,
   });
 
   factory UserData.fromMap(Map<String, dynamic> map) {
     return UserData(
       uid: map['uid'] ?? '',
       name: map['name'] ?? '',
-      photoUrl: map['photoUrl'] ??
-          '', // Provide a default value or handle null appropriately
+      age: map['age'] ?? '',
+      bio: map['bio'] ?? '',
+      photoUrl: map['photoUrl'] ?? '',
+      interests: List<String>.from(map['interests'] ?? []),
     );
   }
 }
