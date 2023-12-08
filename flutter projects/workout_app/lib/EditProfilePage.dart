@@ -20,6 +20,7 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   User? user = FirebaseAuth.instance.currentUser;
+  bool isGoogleSignIn = false;
 
   late TextEditingController nameController;
   var usernameController = TextEditingController(text: "");
@@ -42,7 +43,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   bool isBioLoaded = false;
   bool isUsernameUnique = true;
-  String? viewPhotoUrl;
+  String viewPhotoUrl = '';
 
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -280,11 +281,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     nameController = TextEditingController();
     bioController = TextEditingController();
     fetchNameFromFirestore();
+    fetchUsernameFromFirestore();
     fetchBioFromFirestore();
-    usernameController = TextEditingController(text: user?.displayName ?? "");
+    usernameController = TextEditingController();
     nameFocusNode = FocusNode();
     usernameFocusNode = FocusNode();
     bioFocusNode = FocusNode();
+    checkGoogleSignIn();
+  }
+
+  void checkGoogleSignIn() {
+    // Check if the user signed in with Google
+    isGoogleSignIn = user?.providerData
+            .any((userInfo) => userInfo.providerId == 'google.com') ??
+        false;
   }
 
   Future<void> fetchNameFromFirestore() async {
@@ -295,6 +305,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     setState(() {
       nameController.text = name;
+    });
+  }
+
+  Future<void> fetchUsernameFromFirestore() async {
+    String? uid = user?.uid;
+    DocumentSnapshot<Map<String, dynamic>> snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    String username = snapshot.data()?['username'] ?? "";
+
+    setState(() {
+      usernameController.text = username;
     });
   }
 
@@ -419,8 +440,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           radius: 60,
                           child: ClipOval(
                             child: Image.network(
-                              viewPhotoUrl ??
-                                  'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                              viewPhotoUrl != null && viewPhotoUrl.isNotEmpty
+                                  ? viewPhotoUrl
+                                  : 'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -584,19 +606,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 SizedBox(height: 5),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () async {
-                      await Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => AuthCheck()));
-                      // Additional code to execute after navigating (if needed)
-                    },
-                    child: const Text(
-                      'Change Password?',
-                      style: TextStyle(
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ),
+                  child: isGoogleSignIn // Conditionally show or hide "Change Password?" based on Google Sign-In
+                      ? Container() // If signed in with Google, hide the button
+                      : TextButton(
+                          onPressed: () async {
+                            await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => AuthCheck()));
+                            // Additional code to execute after navigating (if needed)
+                          },
+                          child: const Text(
+                            'Change Password?',
+                            style: TextStyle(
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
                 ),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_app/Gym_Buddies_List.dart';
 import 'package:workout_app/Need_Help.dart';
@@ -16,8 +17,14 @@ class NavBar extends StatefulWidget {
 
 class _NavBarState extends State<NavBar> {
   //when the user clicks on sign out
-  void LogOut() async {
+  void logOut() async {
+    // Sign out from Google if the user is signed in with Google
+    await GoogleSignIn().signOut();
+
+    // Sign out using FirebaseAuth
     await FirebaseAuth.instance.signOut();
+
+    // Navigate to the login screen
     Navigator.popUntil(context, (route) => route.isFirst);
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (context) => LoginScreen()));
@@ -83,25 +90,84 @@ class _NavBarState extends State<NavBar> {
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text(
-              user?.displayName ?? '',
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+            accountName: FutureBuilder<DocumentSnapshot>(
+              // Replace 'users' with the actual name of your collection
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser?.uid)
+                  .get(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  Map<String, dynamic> data =
+                      snapshot.data?.data() as Map<String, dynamic>;
+
+                  // Access the 'name' field from Firestore
+                  String displayName = data['username'] ?? '';
+
+                  return Text(
+                    displayName,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+                } else {
+                  // Return a placeholder while waiting for data
+                  return Text(
+                    'Loading...',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+                }
+              },
             ),
             accountEmail: Text(
               cachedBio,
               style: TextStyle(color: Colors.black),
             ),
-            currentAccountPicture: CircleAvatar(
-              child: ClipOval(
-                child: Image.network(
-                  user?.photoURL ??
-                      'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
-                  width: 90,
-                  height: 90,
-                  fit: BoxFit.cover,
-                ),
-              ),
+            currentAccountPicture: FutureBuilder<DocumentSnapshot>(
+              // Replace 'users' with the actual name of your collection
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser?.uid)
+                  .get(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  Map<String, dynamic> data =
+                      snapshot.data?.data() as Map<String, dynamic>;
+
+                  // Access the 'photoURL' field from Firestore
+                  String photoURL = data['downloadUrl'] ??
+                      'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg';
+
+                  return CircleAvatar(
+                    child: ClipOval(
+                      child: Image.network(
+                        photoURL,
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                } else {
+                  // Return a placeholder while waiting for data
+                  return CircleAvatar(
+                    child: ClipOval(
+                      child: Image.network(
+                        'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -170,7 +236,7 @@ class _NavBarState extends State<NavBar> {
             TextButton(
               child: Text('Yes', style: TextStyle(color: Colors.black)),
               onPressed: () {
-                LogOut();
+                logOut();
               },
             ),
           ],

@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:workout_app/PostGoogle.dart';
 
 import 'BottomNagivationBar.dart';
 import 'SignUpPage.dart';
@@ -50,8 +53,72 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _signInWithGoogle() {
-    // Add Google sign-in logic here
+  Future<UserCredential> signInWithGoogle() async {
+    try {
+      // Sign out from Google if the user is signed in with Google
+      await GoogleSignIn().signOut();
+
+      // Initiate Google Sign-In
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        _showSnackbar('Google Sign-In canceled');
+        return Future.error('Google Sign-In canceled');
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in with Firebase using the obtained credentials
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      final user = userCredential.user;
+      if (user != null) {
+        // Get the user's UID
+        String uid = user.uid;
+
+        // Check if the user exists in Firestore
+        bool userExists = await doesUserExist(uid);
+
+        // If the user doesn't exist, update Firestore
+        if (!userExists) {
+          await FirebaseFirestore.instance.collection('users').doc(uid).set({
+            'uid': uid,
+            'name': googleUser.displayName,
+            'downloadUrl': user.photoURL,
+            'email': googleUser.email,
+          });
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => PostGoogle()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Nav()),
+          );
+        }
+      }
+
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      _showSnackbar('Failed to sign in with Google: ${e.message}');
+      throw e;
+    }
+  }
+
+  Future<bool> doesUserExist(String uid) async {
+    // Check if the user exists in Firestore
+    DocumentSnapshot snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    return snapshot.exists;
   }
 
   void _signInWithFacebook() {
@@ -226,7 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     InkWell(
-                      onTap: _signInWithGoogle,
+                      onTap: signInWithGoogle,
                       child: CircleAvatar(
                         child: ClipOval(
                           child: Image.network(
