@@ -440,7 +440,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           radius: 60,
                           child: ClipOval(
                             child: Image.network(
-                              viewPhotoUrl != null && viewPhotoUrl.isNotEmpty
+                              viewPhotoUrl.isNotEmpty
                                   ? viewPhotoUrl
                                   : 'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
                               fit: BoxFit.cover,
