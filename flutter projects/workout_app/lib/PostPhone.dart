@@ -3,18 +3,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:workout_app/upload_profilePic.dart';
 
-class PostGoogle extends StatefulWidget {
-  const PostGoogle({super.key});
+class postPhone extends StatefulWidget {
+  const postPhone({super.key});
 
   @override
-  State<PostGoogle> createState() => _PostGoogleState();
+  State<postPhone> createState() => _postPhoneState();
 }
 
-class _PostGoogleState extends State<PostGoogle> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
+class _postPhoneState extends State<postPhone> {
   final TextEditingController _userController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   String? _genderValue = "Select";
   final TextEditingController _confirmPasswordController =
@@ -98,6 +96,8 @@ class _PostGoogleState extends State<PostGoogle> {
             .collection('users')
             .doc(currentUser.uid)
             .set({
+          'uid': currentUser.uid,
+          'name': _nameController.text.trim(),
           'username': _userController.text.trim(),
           'age': _dobController.text.trim(),
           'gender': _genderValue,
@@ -140,6 +140,22 @@ class _PostGoogleState extends State<PostGoogle> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              SizedBox(height: 16),
+              TextField(
+                controller: _nameController,
+                cursorColor: Colors.black,
+                decoration: InputDecoration(
+                  labelStyle: TextStyle(color: Colors.black),
+                  labelText: 'Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  filled: true,
+                  focusColor: Colors.black,
+                  fillColor: Colors.grey[200],
+                  contentPadding: EdgeInsets.all(12.0),
+                ),
+              ),
               SizedBox(height: 16),
               TextField(
                 controller: _userController,

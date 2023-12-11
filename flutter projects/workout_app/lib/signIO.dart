@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:workout_app/PostGoogle.dart';
+import 'package:workout_app/sign-in-with-phone.dart';
 
 import 'BottomNagivationBar.dart';
 import 'SignUpPage.dart';
@@ -314,7 +316,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 40,
                         fit: BoxFit.cover,
                       ),
-                    )
+                    ),
+                    CupertinoButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => signInWithPhone()),
+                          );
+                        },
+                        child: Text("Log in with Phone")),
                   ],
                 ),
               ],

@@ -6,7 +6,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:workout_app/Home_Page.dart';
 
 import 'BottomNagivationBar.dart';
 
@@ -96,8 +95,8 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
             SizedBox(height: 10),
             TextButton(
               onPressed: () {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => MyHomePage()));
+                Navigator.pushReplacement(
+                    context, MaterialPageRoute(builder: (context) => Nav()));
                 // Implement the logic to skip this step
                 // For example, you can navigate to the next page
               },
