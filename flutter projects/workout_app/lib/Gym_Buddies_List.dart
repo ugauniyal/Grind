@@ -45,6 +45,7 @@ class GymBuddies extends StatefulWidget {
 
 class _GymBuddiesState extends State<GymBuddies> {
   User? user = FirebaseAuth.instance.currentUser;
+  int friendRequestsCount = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -95,12 +96,13 @@ class _GymBuddiesState extends State<GymBuddies> {
 
                   User user = authSnapshot.data!;
                   List<String> requestUids = []; // List to store request UIDs
-
+                  //showing swiped users here
                   return StreamBuilder(
                     stream: FirebaseFirestore.instance
                         .collection('users')
                         .doc(user.uid)
                         .collection('requests')
+                        .where('pending', isEqualTo: true)
                         .snapshots(),
                     builder: (BuildContext context,
                         AsyncSnapshot<QuerySnapshot> requestSnapshot) {
@@ -137,10 +139,20 @@ class _GymBuddiesState extends State<GymBuddies> {
                           .map((request) => request['uid'].toString())
                           .toList();
 
+                      friendRequestsCount = requestUids.length;
+
                       // Display the request UIDs
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            'Total Friend Requests: $friendRequestsCount',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
                           for (String uid in requestUids)
                             StreamBuilder(
                               stream: FirebaseFirestore.instance

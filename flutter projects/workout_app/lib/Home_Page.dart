@@ -36,24 +36,6 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
 
   @override
-  // void loginOrProfile(BuildContext context) async {
-  //   FirebaseAuth.instance.authStateChanges().listen((User? user) {
-  //     if (user == null) {
-  //       print('User is currently signed out!');
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => LoginScreen()),
-  //       );
-  //     } else {
-  //       print('User is signed in!');
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => EditProfilePage()),
-  //       );
-  //     }
-  //   });
-  // }
-
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: false,

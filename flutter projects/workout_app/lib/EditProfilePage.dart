@@ -106,6 +106,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
         // Update the display name in Firebase Authentication
         user?.updateDisplayName(newUsername);
+
+        // Update the username in Firestore
+        String? uid = user?.uid;
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'username': newUsername,
+        });
       } else {
         setState(() {
           isUsernameUnique = false;
@@ -581,7 +587,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       });
                     },
                     focusNode: bioFocusNode,
-                    maxLength: 50,
+                    maxLength: 150,
                     maxLengthEnforcement: MaxLengthEnforcement.enforced,
                     decoration: InputDecoration(
                       labelText: "Bio",

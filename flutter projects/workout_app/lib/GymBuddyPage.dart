@@ -64,7 +64,6 @@ class _GymBuddyState extends State<GymBuddy> {
             .collection('users')
             .doc(_user.uid)
             .collection('requests')
-            .where('pending', isEqualTo: false)
             .get();
 
     // Get the list of swiped user IDs
@@ -208,7 +207,7 @@ class _GymBuddyState extends State<GymBuddy> {
             .doc(_filteredUsers[previousIndex].uid)
             .set({
           'uid': _filteredUsers[previousIndex].uid,
-          'pending': true,
+          'pending': false,
           'accepted': false,
           'block': false,
           'swiped': true,

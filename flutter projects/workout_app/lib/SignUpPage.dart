@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:workout_app/upload_profilePic.dart';
+import 'package:workout_app/verifyEmail.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -154,7 +154,7 @@ class _SignUpPageState extends State<SignUpPage> {
           }
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => UploadProfilePic()),
+            MaterialPageRoute(builder: (context) => verifyEmail()),
           );
         }
       } on FirebaseAuthException catch (ex) {

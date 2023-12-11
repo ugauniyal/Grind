@@ -8,6 +8,8 @@ import 'package:workout_app/Need_Help.dart';
 import 'package:workout_app/SettingPage.dart';
 import 'package:workout_app/signIO.dart';
 
+import 'components/friendRequestService.dart';
+
 class NavBar extends StatefulWidget {
   const NavBar({super.key});
 
@@ -16,6 +18,7 @@ class NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<NavBar> {
+  int friendRequestsCount = 0;
   //when the user clicks on sign out
   void logOut() async {
     // Sign out from Google if the user is signed in with Google
@@ -91,7 +94,6 @@ class _NavBarState extends State<NavBar> {
         children: [
           UserAccountsDrawerHeader(
             accountName: FutureBuilder<DocumentSnapshot>(
-              // Replace 'users' with the actual name of your collection
               future: FirebaseFirestore.instance
                   .collection('users')
                   .doc(FirebaseAuth.instance.currentUser?.uid)
@@ -124,12 +126,40 @@ class _NavBarState extends State<NavBar> {
                 }
               },
             ),
-            accountEmail: Text(
-              cachedBio,
-              style: TextStyle(color: Colors.black),
+            accountEmail: FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser?.uid)
+                  .get(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  Map<String, dynamic> data =
+                      snapshot.data?.data() as Map<String, dynamic>;
+
+                  // Access the 'bio' field from Firestore
+                  String bio = data['bio'] ?? '';
+
+                  return Text(
+                    bio,
+                    style: TextStyle(color: Colors.black),
+                    maxLines: null, // Set maxLines to null for unlimited lines
+                    overflow: TextOverflow
+                        .visible, // Set overflow to visible to show all lines
+                  );
+                } else {
+                  // Return a placeholder while waiting for data
+                  return Text(
+                    'Loading...',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+                }
+              },
             ),
             currentAccountPicture: FutureBuilder<DocumentSnapshot>(
-              // Replace 'users' with the actual name of your collection
               future: FirebaseFirestore.instance
                   .collection('users')
                   .doc(FirebaseAuth.instance.currentUser?.uid)
@@ -173,9 +203,43 @@ class _NavBarState extends State<NavBar> {
               color: Colors.white,
             ),
           ),
+
+          // Your ListTile code
           ListTile(
             leading: Icon(Icons.people),
-            title: Text('Gym Buddies'),
+            title: Row(
+              children: [
+                Text('Gym Buddies'),
+                Spacer(),
+                FutureBuilder<int>(
+                  future:
+                      FriendRequestService.getFriendRequestsCount(user!.uid),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+
+                    int friendRequestsCount = snapshot.data ?? 0;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: CircleAvatar(
+                        backgroundColor: friendRequestsCount > 0
+                            ? Colors.red
+                            : Colors.transparent,
+                        radius: 10,
+                        child: Text(
+                          friendRequestsCount > 0
+                              ? friendRequestsCount.toString()
+                              : '',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
             onTap: () {
               Navigator.push(
                 context,
@@ -183,6 +247,7 @@ class _NavBarState extends State<NavBar> {
               );
             },
           ),
+
           ListTile(
             leading: Icon(Icons.settings),
             title: Text('Settings'),
