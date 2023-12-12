@@ -133,6 +133,27 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
       womenSelected = _userPreference == "Women";
       bothSelected = _userPreference == "Both";
     });
+
+    // Fetch user's preference from Firestore and update the local state
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user.uid)
+          .get();
+
+      Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
+
+      if (userData != null) {
+        String firestorePreference = userData['preference'] ?? '';
+        setState(() {
+          menSelected = firestorePreference == "Male";
+          womenSelected = firestorePreference == "Female";
+          bothSelected = firestorePreference == "Both";
+        });
+      }
+    } catch (error) {
+      print('Error fetching user preference: $error');
+    }
   }
 
   Future<void> _updatePreferences() async {
