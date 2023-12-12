@@ -101,6 +101,7 @@ class _postPhoneState extends State<postPhone> {
           'username': _userController.text.trim(),
           'age': _dobController.text.trim(),
           'gender': _genderValue,
+          'preference': 'Both',
           // Add more fields as needed
         }, SetOptions(merge: true));
 

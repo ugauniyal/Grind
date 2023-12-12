@@ -34,6 +34,8 @@ dependencies:
   flutter_chat_ui: ^1.6.9
   youtube_player_flutter: ^8.1.2
   carousel_slider: ^4.0.0
+  email_validator: ^2.1.17
+
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -59,6 +61,7 @@ dependencies:
   image_cropper: ^5.0.1
   appinio_swiper: ^2.1.0
   cached_network_image: ^3.3.0
+
 
 
 

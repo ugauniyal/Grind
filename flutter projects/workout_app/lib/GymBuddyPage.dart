@@ -57,34 +57,72 @@ class _GymBuddyState extends State<GymBuddy> {
     }
   }
 
-  Future<void> _loadFilteredUsers() async {
-    // Query the 'requests' subcollection for the logged-in user where pending = true
-    QuerySnapshot<Map<String, dynamic>> requestsSnapshot =
+  Future<String> getPreference() async {
+    DocumentSnapshot<Map<String, dynamic>> userSnapshot =
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_user.uid)
-            .collection('requests')
             .get();
 
-    // Get the list of swiped user IDs
-    List<String> swipedUserIds = requestsSnapshot.docs
-        .where((userDoc) => userDoc['swiped'] == true)
-        .map((swipedUserDoc) => swipedUserDoc.id)
-        .toList();
+    if (userSnapshot.exists) {
+      // Check if the user document exists
+      String preference = userSnapshot.data()?['preference'] ?? '';
+      return preference;
+    } else {
+      // Handle the case where the user document doesn't exist
+      return ''; // or throw an exception, return a default value, etc.
+    }
+  }
 
-    // Query all users excluding the swiped ones and the logged-in user
-    QuerySnapshot<Map<String, dynamic>> allUsersSnapshot =
-        await FirebaseFirestore.instance.collection('users').get();
+  Future<void> _loadFilteredUsers() async {
+    try {
+      // Retrieve the user's preference
+      String userPreference = await getPreference();
 
-    _filteredUsers = allUsersSnapshot.docs
-        .where((userDoc) =>
-            !swipedUserIds.contains(userDoc.id) && userDoc.id != _user.uid)
-        .map((userDoc) => UserData.fromMap(userDoc.data()))
-        .toList();
+      // Query the 'requests' subcollection for the logged-in user where pending = true
+      QuerySnapshot<Map<String, dynamic>> requestsSnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(_user.uid)
+              .collection('requests')
+              .get();
 
-    setState(() {
-      _filteredUsers = _filteredUsers;
-    });
+      // Get the list of swiped user IDs
+      List<String> swipedUserIds = requestsSnapshot.docs
+          .where((userDoc) => userDoc['swiped'] == true)
+          .map((swipedUserDoc) => swipedUserDoc.id)
+          .toList();
+
+      // Query all users excluding the swiped ones and the logged-in user
+      QuerySnapshot<Map<String, dynamic>> allUsersSnapshot =
+          await FirebaseFirestore.instance.collection('users').get();
+
+      if (userPreference.toLowerCase() == 'both') {
+        // Show all users without gender filtering if preference is "Both"
+        _filteredUsers = allUsersSnapshot.docs
+            .where((userDoc) =>
+                !swipedUserIds.contains(userDoc.id) && userDoc.id != _user.uid)
+            .map((userDoc) => UserData.fromMap(userDoc.data()))
+            .toList();
+      } else {
+        // Show users filtered by gender if preference is "Men" or "Women"
+        _filteredUsers = allUsersSnapshot.docs
+            .where((userDoc) =>
+                !swipedUserIds.contains(userDoc.id) &&
+                userDoc.id != _user.uid &&
+                userDoc['gender'].toLowerCase() == userPreference.toLowerCase())
+            .map((userDoc) => UserData.fromMap(userDoc.data()))
+            .toList();
+      }
+
+      setState(() {
+        _filteredUsers = _filteredUsers;
+      });
+    } catch (error) {
+      // Handle any potential errors
+      print('Error loading filtered users: $error');
+      // You can add additional error handling or show a message to the user.
+    }
   }
 
   @override

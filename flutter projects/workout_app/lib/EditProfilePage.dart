@@ -303,6 +303,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
         false;
   }
 
+  bool CheckPhoneNumberSignIn() {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // You may have additional checks based on your user model or authentication details
+      return user.providerData
+          .any((provider) => provider.providerId == 'phone');
+    }
+    return false;
+  }
+
   Future<void> fetchNameFromFirestore() async {
     String? uid = user?.uid;
     DocumentSnapshot<Map<String, dynamic>> snapshot =
@@ -364,6 +374,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isPhoneNumberSignIn = CheckPhoneNumberSignIn();
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(
@@ -614,21 +625,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   alignment: Alignment.centerLeft,
                   child: isGoogleSignIn // Conditionally show or hide "Change Password?" based on Google Sign-In
                       ? Container() // If signed in with Google, hide the button
-                      : TextButton(
-                          onPressed: () async {
-                            await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => AuthCheck()));
-                            // Additional code to execute after navigating (if needed)
-                          },
-                          child: const Text(
-                            'Change Password?',
-                            style: TextStyle(
-                              color: Colors.blue,
+                      : isPhoneNumberSignIn // Conditionally show or hide "Change Password?" based on Phone Number Sign-In
+                          ? Container() // If signed in with Phone Number, hide the button
+                          : TextButton(
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => AuthCheck()),
+                                );
+                                // Additional code to execute after navigating (if needed)
+                              },
+                              child: const Text(
+                                'Change Password?',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
                 ),
               ],
             ),

@@ -7,6 +7,7 @@ import 'package:workout_app/PostGoogle.dart';
 import 'package:workout_app/sign-in-with-phone.dart';
 
 import 'BottomNagivationBar.dart';
+import 'ForgotPasswordPage.dart';
 import 'SignUpPage.dart';
 import 'components/my_button.dart';
 
@@ -209,11 +210,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: Colors.grey,
+                      GestureDetector(
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            color: Colors.grey,
+                          ),
                         ),
+                        onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (context) => forgotPassword())),
                       ),
                     ],
                   ),

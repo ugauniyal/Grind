@@ -132,6 +132,7 @@ class _SignUpPageState extends State<SignUpPage> {
           'uid': uid,
           'username': username,
           'downloadUrl': '',
+          'preference': 'Both',
         }, SetOptions(merge: true));
         _showSnackbar(
             "User Created"); //The merge: true option in is telling Firestore to merge the data with the existing document rather than overwriting it.

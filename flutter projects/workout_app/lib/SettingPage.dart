@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_app/EditProfilePage.dart';
 
 class SettingsOnePage extends StatefulWidget {
@@ -11,7 +12,10 @@ class SettingsOnePage extends StatefulWidget {
 }
 
 class _SettingsOnePageState extends State<SettingsOnePage> {
+  User _user = FirebaseAuth.instance.currentUser!;
   List<String> selectedInterests = [];
+
+  String _userPreference = "";
 
   List<String> availableInterests = [
     'Running/Jogging',
@@ -57,6 +61,30 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
   bool bothSelected = false;
   bool isInterestExpanded = false;
 
+  void updatePreferences() async {
+    String preferenceValue = '';
+
+    if (menSelected) {
+      preferenceValue = 'Male';
+    } else if (womenSelected) {
+      preferenceValue = 'Female';
+    } else if (bothSelected) {
+      preferenceValue = 'Both';
+    }
+
+    // Update the preference field in the user document
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user.uid)
+        .update({'preference': preferenceValue});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserPreference();
+  }
+
   Widget _buildInterestsList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,6 +122,29 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
         SizedBox(height: 8),
       ],
     );
+  }
+
+  Future<void> _loadUserPreference() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      _userPreference = prefs.getString('user_preference') ?? "";
+      menSelected = _userPreference == "Men";
+      womenSelected = _userPreference == "Women";
+      bothSelected = _userPreference == "Both";
+    });
+  }
+
+  Future<void> _updatePreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    if (menSelected == true) {
+      prefs.setString('user_preference', 'Men');
+    } else if (womenSelected == true) {
+      prefs.setString('user_preference', 'Women');
+    } else if (bothSelected == true) {
+      prefs.setString('user_preference', 'Both');
+    }
   }
 
   Widget _buildAddInterestButton(BuildContext context) {
@@ -413,45 +464,50 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                 children: [
                                   CheckboxListTile(
                                     title: Text("Men"),
-                                    value: menSelected,
+                                    value: menSelected ??
+                                        (_userPreference == "Men"),
                                     activeColor: Colors.black,
                                     onChanged: (bool? value) {
-                                      if (value != null) {
+                                      if (value != null && value) {
                                         setState(() {
-                                          menSelected = value;
+                                          menSelected = true;
+                                          womenSelected = false;
+                                          bothSelected = false;
                                         });
                                       }
                                     },
                                   ),
                                   CheckboxListTile(
                                     title: Text("Women"),
-                                    value: womenSelected,
+                                    value: womenSelected ??
+                                        (_userPreference == "Women"),
                                     activeColor: Colors.black,
                                     onChanged: (bool? value) {
-                                      if (value != null) {
+                                      if (value != null && value) {
                                         setState(() {
-                                          womenSelected = value;
+                                          menSelected = false;
+                                          womenSelected = true;
+                                          bothSelected = false;
                                         });
                                       }
                                     },
                                   ),
                                   CheckboxListTile(
                                     title: Text("Both"),
-                                    value: bothSelected,
+                                    value: bothSelected ??
+                                        (_userPreference == "Both"),
                                     activeColor: Colors.black,
                                     onChanged: (bool? value) {
                                       if (value != null) {
                                         setState(() {
                                           bothSelected = value;
-                                          menSelected = value;
-                                          womenSelected = value;
+                                          menSelected = false;
+                                          womenSelected = false;
                                         });
                                       }
                                     },
                                   ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
+                                  SizedBox(height: 10),
                                   if (isShowMeExpanded)
                                     Center(
                                       child: ElevatedButton(
@@ -459,14 +515,18 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                           if (menSelected ||
                                               womenSelected ||
                                               bothSelected) {
+                                            updatePreferences();
                                             setState(() {
                                               isShowMeExpanded = false;
                                             });
                                           } else {
                                             ScaffoldMessenger.of(context)
-                                                .showSnackBar(SnackBar(
-                                                    content: Text(
-                                                        "Please select at least one option.")));
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    "Please select at least one option."),
+                                              ),
+                                            );
                                           }
                                         },
                                         style: ElevatedButton.styleFrom(
@@ -479,9 +539,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                         ),
                                       ),
                                     ),
-                                  SizedBox(
-                                    height: 8,
-                                  )
+                                  SizedBox(height: 8),
                                 ],
                               ),
                             ),
