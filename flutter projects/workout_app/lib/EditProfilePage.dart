@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:progress_dialog_null_safe/progress_dialog_null_safe.dart';
 import 'package:uuid/uuid.dart';
@@ -29,6 +30,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   var CpasswordController = TextEditingController();
   File? profilePic;
   File? viewPhoto;
+
+  File? imageFile;
+  bool isImageUploaded = false;
 
   bool showCurrentPassword = false;
   bool showNewPassword = false;
@@ -144,18 +148,153 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  void updateProfilePic() async {
-    String? uid = user?.uid;
-    XFile? selectedImage =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+  void _cropImageProfile(File imgFile) async {
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: imgFile.path,
+      aspectRatioPresets: Platform.isAndroid
+          ? [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9
+            ]
+          : [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio5x3,
+              CropAspectRatioPreset.ratio5x4,
+              CropAspectRatioPreset.ratio7x5,
+              CropAspectRatioPreset.ratio16x9
+            ],
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: "Image Cropper",
+          toolbarColor: Colors.deepOrange,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(
+          title: "Image Cropper",
+        )
+      ],
+    );
 
-    if (selectedImage != null) {
-      File convertedFile = File(selectedImage.path);
+    if (croppedFile != null) {
+      imageCache.clear();
+      updateProfilePic(croppedFile);
+    }
+  }
+
+  void showImagePickerProfile(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (builder) {
+        return Card(
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height / 5.2,
+            margin: const EdgeInsets.only(top: 8.0),
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: InkWell(
+                    child: Column(
+                      children: const [
+                        Icon(
+                          Icons.image,
+                          size: 60.0,
+                        ),
+                        SizedBox(height: 12.0),
+                        Text(
+                          "Gallery",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, color: Colors.black),
+                        )
+                      ],
+                    ),
+                    onTap: () async {
+                      await _imgFromGalleryForProfile();
+                      // Close the bottom sheet after a slight delay
+                      Future.delayed(Duration(milliseconds: 200), () {
+                        Navigator.pop(context);
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    child: SizedBox(
+                      child: Column(
+                        children: const [
+                          Icon(
+                            Icons.camera_alt,
+                            size: 60.0,
+                          ),
+                          SizedBox(height: 12.0),
+                          Text(
+                            "Camera",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                          )
+                        ],
+                      ),
+                    ),
+                    onTap: () async {
+                      await _imgFromCameraForProfile();
+                      // Close the bottom sheet after a slight delay
+                      Future.delayed(Duration(milliseconds: 200), () {
+                        Navigator.pop(context);
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _imgFromGalleryForProfile() async {
+    Navigator.pop(context); // Close the bottom sheet
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+
+    if (pickedFile != null) {
+      _cropImageProfile(File(pickedFile.path));
+    }
+  }
+
+  Future<void> _imgFromCameraForProfile() async {
+    Navigator.pop(context); // Close the bottom sheet
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50,
+    );
+
+    if (pickedFile != null) {
+      _cropImageProfile(File(pickedFile.path));
+    }
+  }
+
+  Future<void> updateProfilePic(final croppedFile) async {
+    String? uid = user?.uid;
+
+    if (croppedFile != null) {
+      File convertedFile = File(croppedFile.path);
       setState(() {
         profilePic = convertedFile;
       });
 
-      // Upload the new profile picture to Firebase Storage
       ProgressDialog progressDialog = ProgressDialog(context);
       progressDialog.style(
         message: 'Uploading Profile Picture',
@@ -197,13 +336,150 @@ class _EditProfilePageState extends State<EditProfilePage> {
       } finally {
         progressDialog
             .hide(); // Hide loading screen whether upload succeeded or failed
+
+        // Remove the line below if not intended to show the image picker again
+        // showImagePickerProfile(context);
       }
     } else {
       print("No image selected");
     }
   }
 
-  void saveViewPhoto() async {
+  final picker = ImagePicker();
+
+  void showImagePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (builder) {
+        return Card(
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height / 5.2,
+            margin: const EdgeInsets.only(top: 8.0),
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: InkWell(
+                    child: Column(
+                      children: const [
+                        Icon(
+                          Icons.image,
+                          size: 60.0,
+                        ),
+                        SizedBox(height: 12.0),
+                        Text(
+                          "Gallery",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, color: Colors.black),
+                        )
+                      ],
+                    ),
+                    onTap: () async {
+                      await _imgFromGallery();
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    child: SizedBox(
+                      child: Column(
+                        children: const [
+                          Icon(
+                            Icons.camera_alt,
+                            size: 60.0,
+                          ),
+                          SizedBox(height: 12.0),
+                          Text(
+                            "Camera",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                          )
+                        ],
+                      ),
+                    ),
+                    onTap: () async {
+                      await _imgFromCamera();
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _imgFromGallery() async {
+    Navigator.pop(context);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+
+    if (pickedFile != null) {
+      _cropImage(File(pickedFile.path));
+    }
+  }
+
+  Future<void> _imgFromCamera() async {
+    Navigator.pop(context);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50,
+    );
+
+    if (pickedFile != null) {
+      _cropImage(File(pickedFile.path));
+    }
+  }
+
+  void _cropImage(File imgFile) async {
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: imgFile.path,
+      aspectRatioPresets: Platform.isAndroid
+          ? [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9
+            ]
+          : [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio5x3,
+              CropAspectRatioPreset.ratio5x4,
+              CropAspectRatioPreset.ratio7x5,
+              CropAspectRatioPreset.ratio16x9
+            ],
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: "Image Cropper",
+          toolbarColor: Colors.deepOrange,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(
+          title: "Image Cropper",
+        )
+      ],
+    );
+
+    if (croppedFile != null) {
+      imageCache.clear();
+      saveViewPhoto(croppedFile);
+    }
+  }
+
+  void saveViewPhoto(final croppedFile) async {
     ProgressDialog progressDialog = ProgressDialog(context);
     progressDialog.style(
       message: 'Uploading Grind picture',
@@ -211,11 +487,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     User? user = FirebaseAuth.instance.currentUser;
     String uid = user?.uid ?? '';
-    XFile? selectedImage =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    if (selectedImage != null) {
-      File convertedFile = File(selectedImage.path);
+    if (croppedFile != null) {
+      File convertedFile = File(croppedFile.path);
       progressDialog.show();
 
       try {
@@ -424,7 +698,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                       onTap: () {
                                         Navigator.pop(
                                             context); // Close the bottom sheet
-                                        updateProfilePic(); // Call your function to change photo
+                                        showImagePickerProfile(
+                                            context); // Call your function to change photo
                                       },
                                     ),
                                     ListTile(
@@ -478,7 +753,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                       onTap: () {
                                         Navigator.pop(
                                             context); // Close the bottom sheet
-                                        saveViewPhoto(); // Call your function to change photo
+                                        showImagePicker(
+                                            context); // Call your function to change photo
                                       },
                                     ),
                                     ListTile(

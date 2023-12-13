@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,38 +20,172 @@ class UploadProfilePic extends StatefulWidget {
 class _UploadProfilePicState extends State<UploadProfilePic> {
   File? profilePic;
 
-  void saveProfilePic() async {
-    XFile? selectedImage =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+  final picker = ImagePicker();
 
-    if (selectedImage != null) {
-      File convertedFile = File(selectedImage.path);
+  void showImagePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (builder) {
+        return Card(
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height / 5.2,
+            margin: const EdgeInsets.only(top: 8.0),
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: InkWell(
+                    child: Column(
+                      children: const [
+                        Icon(
+                          Icons.image,
+                          size: 60.0,
+                        ),
+                        SizedBox(height: 12.0),
+                        Text(
+                          "Gallery",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, color: Colors.black),
+                        )
+                      ],
+                    ),
+                    onTap: () async {
+                      await _imgFromGallery();
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    child: SizedBox(
+                      child: Column(
+                        children: const [
+                          Icon(
+                            Icons.camera_alt,
+                            size: 60.0,
+                          ),
+                          SizedBox(height: 12.0),
+                          Text(
+                            "Camera",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                          )
+                        ],
+                      ),
+                    ),
+                    onTap: () async {
+                      await _imgFromCamera();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _imgFromGallery() async {
+    Navigator.pop(context);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+
+    if (pickedFile != null) {
+      _cropImage(File(pickedFile.path));
+    }
+  }
+
+  Future<void> _imgFromCamera() async {
+    Navigator.pop(context);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50,
+    );
+
+    if (pickedFile != null) {
+      _cropImage(File(pickedFile.path));
+    }
+  }
+
+  void saveProfilePic(final croppedFile) async {
+    if (croppedFile != null) {
+      File convertedFile = File(croppedFile.path);
       setState(() {
         profilePic = convertedFile;
       });
       _showSnackbar('Profile Image Updated');
-      Navigator.push(
+
+      UploadTask uploadTask = FirebaseStorage.instance
+          .ref()
+          .child("ProfilePictures_folder")
+          .child(Uuid().v1())
+          .putFile(profilePic!);
+
+      TaskSnapshot taskSnapshot = await uploadTask;
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      User? user = FirebaseAuth.instance.currentUser;
+      String? uid = user?.uid;
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'downloadUrl': downloadUrl,
+      });
+      await user?.updatePhotoURL(downloadUrl);
+
+      // Navigate to the homepage after the image is uploaded and saved
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => Nav()),
       );
     } else {
       print("no image selected");
     }
+  }
 
-    UploadTask uploadTask = FirebaseStorage.instance
-        .ref()
-        .child("ProfilePictures_folder")
-        .child(Uuid().v1())
-        .putFile(profilePic!);
+  void _cropImage(File imgFile) async {
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: imgFile.path,
+      aspectRatioPresets: Platform.isAndroid
+          ? [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9
+            ]
+          : [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio5x3,
+              CropAspectRatioPreset.ratio5x4,
+              CropAspectRatioPreset.ratio7x5,
+              CropAspectRatioPreset.ratio16x9
+            ],
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: "Image Cropper",
+          toolbarColor: Colors.deepOrange,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(
+          title: "Image Cropper",
+        ),
+      ],
+    );
 
-    TaskSnapshot taskSnapshot = await uploadTask;
-    String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-    User? user = FirebaseAuth.instance.currentUser;
-    String? uid = user?.uid;
-    await FirebaseFirestore.instance.collection('users').doc(uid).update({
-      'downloadUrl': downloadUrl,
-    });
-    await user?.updatePhotoURL(downloadUrl);
+    if (croppedFile != null) {
+      imageCache.clear();
+      saveProfilePic(croppedFile);
+    } else {
+      // Handle the case when the user cancels cropping
+      _showSnackbar('Image cropping canceled');
+    }
   }
 
   void _showSnackbar(String message) {
@@ -86,10 +221,9 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: saveProfilePic
-              // Implement the logic to upload the profile picture
-              // You can use a backend service for this purpose
-              ,
+              onPressed: () {
+                showImagePicker(context);
+              },
               child: Text('Upload Profile Picture'),
             ),
             SizedBox(height: 10),
