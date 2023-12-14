@@ -31,42 +31,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  void dropdownCallback(String? selectedValue) {}
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: Colors.black,
-            hintColor: Colors.black,
-            colorScheme: ColorScheme.light(primary: Colors.black),
-            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null && picked != DateTime.now()) {
-      setState(() {
-        _dobController.text = picked.toLocal().toString().split(' ')[0];
-      });
-    }
-  }
-
-  String? _validateDOB(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Date of Birth is required';
-    }
-    // Add additional validation logic if needed
-    return null;
-  }
-
   void _checkUsernameAvailability(String username) async {
     // Check if the username exists in the Firestore database
     username = username.trim();
@@ -92,9 +56,6 @@ class _SignUpPageState extends State<SignUpPage> {
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
     String username = _userController.text.trim();
-    String name = _nameController.text.trim();
-    String age = _dobController.text.trim();
-    String? gender = _genderValue;
 
     if (email == "" || password == "" || confirmPassword == "") {
       _showSnackbar('Please enter login details');
@@ -117,25 +78,6 @@ class _SignUpPageState extends State<SignUpPage> {
         // Reload the user to get the updated information
         await userCredential.user!
             .reload(); // used to reload the user information from Firebase Authentication after updating the display name
-
-        // Access the updated display name
-        String displayName = userCredential.user!.displayName ?? '';
-        print('User Display Name: $displayName');
-        String? uid = userCredential.user?.uid;
-        //taking input from user to store in firebase
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'name': name,
-          'age': age,
-          'bio': "",
-          'gender': gender,
-          'email': email,
-          'uid': uid,
-          'username': username,
-          'downloadUrl': '',
-          'preference': 'Both',
-        }, SetOptions(merge: true));
-        _showSnackbar(
-            "User Created"); //The merge: true option in is telling Firestore to merge the data with the existing document rather than overwriting it.
 
         if (userCredential.user != null) {
           try {
@@ -187,20 +129,6 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: _nameController,
-                cursorColor: Colors.black,
-                decoration: InputDecoration(
-                    labelStyle: TextStyle(color: Colors.black),
-                    labelText: 'Name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    filled: true,
-                    focusColor: Colors.black,
-                    fillColor: Colors.grey[200],
-                    contentPadding: EdgeInsets.all(12.0)),
-              ),
               SizedBox(height: 16),
               TextField(
                 controller: _userController,
@@ -236,51 +164,51 @@ class _SignUpPageState extends State<SignUpPage> {
                       color: _isUsernameAvailable ? Colors.green : Colors.red),
                 ),
               ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _dobController,
-                readOnly: true,
-                onTap: () => _selectDate(context),
-                validator: _validateDOB,
-                cursorColor: Colors.black,
-                decoration: InputDecoration(
-                  labelStyle: TextStyle(color: Colors.black),
-                  labelText: 'Date of Birth',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  filled: true,
-                  focusColor: Colors.black,
-                  fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0),
-                ),
-              ),
-              SizedBox(height: 16),
-              DropdownButtonFormField(
-                value: _genderValue,
-                items: const [
-                  DropdownMenuItem(
-                      child: Text("Select"), value: "Select", enabled: false),
-                  DropdownMenuItem(child: Text("Male"), value: "Male"),
-                  DropdownMenuItem(child: Text("Female"), value: "Female"),
-                ],
-                isExpanded: true,
-                decoration: InputDecoration(
-                    labelStyle: TextStyle(color: Colors.black),
-                    labelText: 'Sex',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    filled: true,
-                    focusColor: Colors.black,
-                    fillColor: Colors.grey[200],
-                    contentPadding: EdgeInsets.all(12.0)),
-                onChanged: (Object? value) {
-                  setState(() {
-                    _genderValue = value as String;
-                  });
-                },
-              ),
+              // SizedBox(height: 16),
+              // TextFormField(
+              //   controller: _dobController,
+              //   readOnly: true,
+              //   onTap: () => _selectDate(context),
+              //   validator: _validateDOB,
+              //   cursorColor: Colors.black,
+              //   decoration: InputDecoration(
+              //     labelStyle: TextStyle(color: Colors.black),
+              //     labelText: 'Date of Birth',
+              //     border: OutlineInputBorder(
+              //       borderRadius: BorderRadius.circular(10.0),
+              //     ),
+              //     filled: true,
+              //     focusColor: Colors.black,
+              //     fillColor: Colors.grey[200],
+              //     contentPadding: EdgeInsets.all(12.0),
+              //   ),
+              // ),
+              // SizedBox(height: 16),
+              // DropdownButtonFormField(
+              //   value: _genderValue,
+              //   items: const [
+              //     DropdownMenuItem(
+              //         child: Text("Select"), value: "Select", enabled: false),
+              //     DropdownMenuItem(child: Text("Male"), value: "Male"),
+              //     DropdownMenuItem(child: Text("Female"), value: "Female"),
+              //   ],
+              //   isExpanded: true,
+              //   decoration: InputDecoration(
+              //       labelStyle: TextStyle(color: Colors.black),
+              //       labelText: 'Sex',
+              //       border: OutlineInputBorder(
+              //         borderRadius: BorderRadius.circular(10.0),
+              //       ),
+              //       filled: true,
+              //       focusColor: Colors.black,
+              //       fillColor: Colors.grey[200],
+              //       contentPadding: EdgeInsets.all(12.0)),
+              //   onChanged: (Object? value) {
+              //     setState(() {
+              //       _genderValue = value as String;
+              //     });
+              //   },
+              // ),
               SizedBox(height: 16),
               TextField(
                 controller: _emailController,
