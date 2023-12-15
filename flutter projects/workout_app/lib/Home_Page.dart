@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:workout_app/Chat_Page.dart';
 import 'package:workout_app/GymProfile.dart';
 import 'package:workout_app/sideBar.dart';
@@ -17,9 +20,9 @@ Color _getStarColor(double rating) {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({super.key, this.title});
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
-  String? title;
+  final String? title;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -28,12 +31,98 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int currentIndex1 = 0;
   double rating = 3.2;
+  bool _isMounted = false;
 
   List<Widget> gymPhotos = [
     Image.asset('assets/images/gym1.jpg'),
     Image.asset('assets/images/gym2.jpg'),
     Image.asset('assets/images/gym3.jpg')
   ];
+
+  Position? _currentLocation;
+  late bool servicePermission = false;
+  late LocationPermission permission;
+
+  @override
+  void initState() {
+    super.initState();
+    _isMounted = true;
+    _getCurrentLocation().then((position) {
+      if (_isMounted) {
+        setState(() {
+          _currentLocation = position;
+        });
+      }
+    }).catchError((e) {
+      print("Error getting location: $e");
+    });
+  }
+
+  @override
+  void dispose() {
+    _isMounted = false;
+    super.dispose();
+  }
+
+  Future<void> saveLocationToFirebase(double latitude, double longitude) async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    String? uid = currentUser?.uid;
+
+    // Reference to the user's document in the 'users' collection
+    DocumentReference userDocRef =
+        FirebaseFirestore.instance.collection('users').doc(uid);
+
+    // Use set with SetOptions(merge: true) to update or create fields
+    await userDocRef.set({
+      'latitude': latitude,
+      'longitude': longitude,
+    }, SetOptions(merge: true));
+
+    print(
+        "Location saved to Firebase: Latitude - $latitude, Longitude - $longitude");
+  }
+
+  Future<dynamic> _getCurrentLocation() async {
+    servicePermission = await Geolocator.isLocationServiceEnabled();
+    if (!servicePermission) {
+      print("Service disabled");
+      // Show a dialog or message informing the user to enable location services
+      // You can use showDialog or any other method to display a message
+      return Future.error("Location services are disabled.");
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      // Permission is not granted, request it
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permission still not granted, handle accordingly
+        // You can show a dialog or message to inform the user about the need for location permission
+        return Future.error("Location permission denied.");
+      }
+    }
+
+    // Clear old location
+    setState(() {
+      _currentLocation = null;
+    });
+
+    Position position;
+    try {
+      // Request location after permission is granted
+      position = await Geolocator.getCurrentPosition();
+      print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
+      await saveLocationToFirebase(position.latitude, position.longitude);
+
+      // Update the state with the new location
+      setState(() {
+        _currentLocation = position;
+      });
+    } catch (e) {
+      print("Error getting location: $e");
+      throw Exception("Error getting location: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +186,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   padding: const EdgeInsets.all(8.0),
                   child: GestureDetector(
                     onTap: () {
-                      // Navigate to the new page when the card is tapped
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -161,8 +249,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                             padding: const EdgeInsets.only(
                                                 left: 3.0, right: 10.0),
                                             child: Text(
-                                              rating
-                                                  .toString(), // Replace with actual rating
+                                              rating.toString(),
                                               style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 18,

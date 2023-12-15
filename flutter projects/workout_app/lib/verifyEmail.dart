@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'credentials.dart';
+import 'userInfo.dart';
 
 class verifyEmail extends StatefulWidget {
   const verifyEmail({super.key});
@@ -69,7 +69,7 @@ class _verifyEmailState extends State<verifyEmail> {
 
   @override
   Widget build(BuildContext context) => isEmailVerified
-      ? Credentials()
+      ? userInfo()
       : Scaffold(
           appBar: AppBar(
             title: Text('verify email'),

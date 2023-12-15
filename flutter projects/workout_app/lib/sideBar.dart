@@ -21,16 +21,22 @@ class _NavBarState extends State<NavBar> {
   int friendRequestsCount = 0;
   //when the user clicks on sign out
   void logOut() async {
-    // Sign out from Google if the user is signed in with Google
-    await GoogleSignIn().signOut();
+    try {
+      // Sign out from Google if the user is signed in with Google
+      await GoogleSignIn().signOut();
 
-    // Sign out using FirebaseAuth
-    await FirebaseAuth.instance.signOut();
+      // Sign out using FirebaseAuth
+      await FirebaseAuth.instance.signOut();
 
-    // Navigate to the login screen
-    Navigator.popUntil(context, (route) => route.isFirst);
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => LoginScreen()));
+      // Navigate to the login screen
+      Navigator.popUntil(context, (route) => route.isFirst);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    } catch (e) {
+      print('Error during sign-out: $e');
+    }
   }
 
   User? user = FirebaseAuth.instance.currentUser;

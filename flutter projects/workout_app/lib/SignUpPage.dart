@@ -13,10 +13,7 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _userController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
-  String? _genderValue = "Select";
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   bool _showPassword = false;
@@ -164,51 +161,6 @@ class _SignUpPageState extends State<SignUpPage> {
                       color: _isUsernameAvailable ? Colors.green : Colors.red),
                 ),
               ),
-              // SizedBox(height: 16),
-              // TextFormField(
-              //   controller: _dobController,
-              //   readOnly: true,
-              //   onTap: () => _selectDate(context),
-              //   validator: _validateDOB,
-              //   cursorColor: Colors.black,
-              //   decoration: InputDecoration(
-              //     labelStyle: TextStyle(color: Colors.black),
-              //     labelText: 'Date of Birth',
-              //     border: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(10.0),
-              //     ),
-              //     filled: true,
-              //     focusColor: Colors.black,
-              //     fillColor: Colors.grey[200],
-              //     contentPadding: EdgeInsets.all(12.0),
-              //   ),
-              // ),
-              // SizedBox(height: 16),
-              // DropdownButtonFormField(
-              //   value: _genderValue,
-              //   items: const [
-              //     DropdownMenuItem(
-              //         child: Text("Select"), value: "Select", enabled: false),
-              //     DropdownMenuItem(child: Text("Male"), value: "Male"),
-              //     DropdownMenuItem(child: Text("Female"), value: "Female"),
-              //   ],
-              //   isExpanded: true,
-              //   decoration: InputDecoration(
-              //       labelStyle: TextStyle(color: Colors.black),
-              //       labelText: 'Sex',
-              //       border: OutlineInputBorder(
-              //         borderRadius: BorderRadius.circular(10.0),
-              //       ),
-              //       filled: true,
-              //       focusColor: Colors.black,
-              //       fillColor: Colors.grey[200],
-              //       contentPadding: EdgeInsets.all(12.0)),
-              //   onChanged: (Object? value) {
-              //     setState(() {
-              //       _genderValue = value as String;
-              //     });
-              //   },
-              // ),
               SizedBox(height: 16),
               TextField(
                 controller: _emailController,

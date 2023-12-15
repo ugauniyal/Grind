@@ -3,20 +3,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:workout_app/upload_profilePic.dart';
 
-class Credentials extends StatefulWidget {
-  const Credentials({Key? key}) : super(key: key);
+class userInfo extends StatefulWidget {
+  const userInfo({Key? key}) : super(key: key);
 
   @override
-  State<Credentials> createState() => _CredentialsState();
+  State<userInfo> createState() => _userInfoState();
 }
 
-class _CredentialsState extends State<Credentials> {
+class _userInfoState extends State<userInfo> {
   TextEditingController _nameController = TextEditingController();
   TextEditingController _dobController = TextEditingController();
   TextEditingController _bioController = TextEditingController();
   String? _genderValue = "Select";
-
-  void dropdownCallback(String? selectedValue) {}
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -61,16 +59,19 @@ class _CredentialsState extends State<Credentials> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Name TextField
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(
+                labelText: 'Name',
+                border: OutlineInputBorder(),
+              ),
             ),
             SizedBox(height: 16.0),
 
-            // Date of Birth TextField
+            // Date of Birth TextFormField
             TextFormField(
               controller: _dobController,
               readOnly: true,
@@ -78,15 +79,9 @@ class _CredentialsState extends State<Credentials> {
               validator: _validateDOB,
               cursorColor: Colors.black,
               decoration: InputDecoration(
-                labelStyle: TextStyle(color: Colors.black),
                 labelText: 'Date of Birth',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                filled: true,
-                focusColor: Colors.black,
-                fillColor: Colors.grey[200],
-                contentPadding: EdgeInsets.all(12.0),
+                suffixIcon: Icon(Icons.calendar_today),
+                border: OutlineInputBorder(),
               ),
             ),
             SizedBox(height: 16.0),
@@ -94,40 +89,50 @@ class _CredentialsState extends State<Credentials> {
             // Bio TextField
             TextField(
               controller: _bioController,
-              decoration: InputDecoration(labelText: 'Bio'),
-              maxLines: 3, // Allowing multiple lines for bio
+              decoration: InputDecoration(
+                labelText: 'Bio',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
             ),
             SizedBox(height: 16.0),
+
+            // Gender DropdownButtonFormField
             DropdownButtonFormField(
               value: _genderValue,
               items: const [
                 DropdownMenuItem(
-                    child: Text("Select"), value: "Select", enabled: false),
+                  child: Text("Select"),
+                  value: "Select",
+                  enabled: false,
+                ),
                 DropdownMenuItem(child: Text("Male"), value: "Male"),
                 DropdownMenuItem(child: Text("Female"), value: "Female"),
               ],
               isExpanded: true,
               decoration: InputDecoration(
-                  labelStyle: TextStyle(color: Colors.black),
-                  labelText: 'Sex',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  filled: true,
-                  focusColor: Colors.black,
-                  fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0)),
+                labelText: 'Sex',
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.grey[200],
+                contentPadding: EdgeInsets.all(12.0),
+              ),
               onChanged: (Object? value) {
                 setState(() {
                   _genderValue = value as String?;
                 });
               },
             ),
+            SizedBox(height: 24.0),
 
-            // Button to submit the form
+            // Submit Button
             ElevatedButton(
               onPressed: () {
-                createAccount(); // Call the createAccount function here
+                if (_validateDOB(_dobController.text) == null) {
+                  createAccount();
+                } else {
+                  _showSnackbar("Please enter a valid Date of Birth");
+                }
               },
               child: Text('Submit'),
             ),
@@ -151,17 +156,22 @@ class _CredentialsState extends State<Credentials> {
         String uid = currentUser.uid;
         String? username = currentUser.displayName;
 
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'name': name,
-          'age': age,
-          'bio': bio,
-          'gender': gender,
-          'email': email,
-          'uid': uid,
-          'username': username,
-          'downloadUrl': '',
-          'preference': 'Both',
-        }, SetOptions(merge: true));
+        await FirebaseFirestore.instance.collection('users').doc(uid).set(
+          {
+            'name': name,
+            'age': age,
+            'bio': bio,
+            'gender': gender,
+            'email': email,
+            'uid': uid,
+            'username': username,
+            'downloadUrl': '',
+            'latitude': '',
+            'longitude': '',
+            'preference': 'Both',
+          },
+          SetOptions(merge: true),
+        );
         _showSnackbar("User Created");
 
         Navigator.push(
@@ -186,6 +196,6 @@ class _CredentialsState extends State<Credentials> {
 
 void main() {
   runApp(MaterialApp(
-    home: Credentials(),
+    home: userInfo(),
   ));
 }
