@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +34,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int currentIndex1 = 0;
   double rating = 3.2;
   bool _isMounted = false;
+  late List<DocumentSnapshot> gymData = [];
+
+  late double userLatitude;
+  late double userLongitude;
 
   List<Widget> gymPhotos = [
     Image.asset('assets/images/gym1.jpg'),
@@ -40,12 +46,14 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
 
   Position? _currentLocation;
+  String _currentAddress = '';
   late bool servicePermission = false;
   late LocationPermission permission;
 
   @override
   void initState() {
     super.initState();
+    fetchGymData();
     _isMounted = true;
     _getCurrentLocation().then((position) {
       if (_isMounted) {
@@ -56,12 +64,25 @@ class _MyHomePageState extends State<MyHomePage> {
     }).catchError((e) {
       print("Error getting location: $e");
     });
+
+    userLongitude = 0.0;
+    userLatitude = 0.0;
+    getCurrentUserLocation();
   }
 
   @override
   void dispose() {
     _isMounted = false;
     super.dispose();
+  }
+
+  Future<void> fetchGymData() async {
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('gyms').get();
+
+    setState(() {
+      gymData = querySnapshot.docs;
+    });
   }
 
   Future<void> saveLocationToFirebase(double latitude, double longitude) async {
@@ -124,6 +145,59 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Future<void> getCurrentUserLocation() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      try {
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+
+        double latitude = userSnapshot['latitude'];
+        double longitude = userSnapshot['longitude'];
+
+        setState(() {
+          userLatitude = latitude;
+          userLongitude = longitude;
+        });
+
+        print(
+            'Current User Location: Latitude - $latitude, Longitude - $longitude');
+      } catch (e) {
+        print('Error retrieving user location: $e');
+      }
+    } else {
+      print('User not signed in.');
+    }
+  }
+
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371; // Radius of the Earth in kilometers
+
+    // Convert degrees to radians
+    double dLat = _degreesToRadians(lat2 - lat1);
+    double dLon = _degreesToRadians(lon2 - lon1);
+
+    // Haversine formula
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    // Distance in kilometers
+    double distance = earthRadius * c;
+
+    return distance;
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * pi / 180;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,13 +241,32 @@ class _MyHomePageState extends State<MyHomePage> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.brown,
-                  borderRadius:
-                      BorderRadius.circular(10.0), // Adjust the value as needed
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(
+                    color: Colors.white, // Choose the color of the border
+                    width: 2.0, // Adjust the width of the border as needed
+                  ),
                 ),
                 child: Center(
-                  child: Text(
-                    'Think about this box',
-                    style: TextStyle(fontSize: 24, color: Colors.white),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.white, // Choose the color of the border
+                        width: 2.0, // Adjust the width of the border as needed
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(8.0), // Adjust as needed
+                    ),
+                    child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(6.0), // Adjust as needed
+                      child: Image.network(
+                        'https://media.tenor.com/RqZd0DYvLg8AAAAM/sam-sulek.gif',
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -182,6 +275,15 @@ class _MyHomePageState extends State<MyHomePage> {
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
+                var gym = gymData[index].data() as Map<String, dynamic>;
+                double distance = calculateDistance(
+                  userLatitude,
+                  userLongitude,
+                  gym['latitude'] as double,
+                  gym['longitude'] as double,
+                );
+                rating = (gym['rating'] ?? 0).toDouble();
+
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: GestureDetector(
@@ -189,7 +291,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => GymDetailsPage(index + 1)),
+                            builder: (context) => GymDetailsPage(gymData: gym)),
                       );
                     },
                     child: Card(
@@ -210,7 +312,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                 borderRadius: BorderRadius.circular(16.0),
                                 color: Colors.white,
                               ),
-                              child: gymPhotos[index],
+                              child: Image.network(
+                                gym['gym_photo1'],
+                                height: 250,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                           Padding(
@@ -219,7 +326,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text("Gym ${index + 1}",
+                                Text(gym['name'],
                                     style: TextStyle(
                                         fontFamily: "TextName",
                                         fontWeight: FontWeight.bold,
@@ -268,7 +375,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Padding(
                             padding: const EdgeInsets.only(left: 11),
                             child: Text(
-                              'Yoga • Zumba • Aerobics',
+                              '${gym['gym_services']}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 11,
@@ -278,8 +385,22 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                           Padding(
                             padding: const EdgeInsets.only(left: 11),
+                            child: userLatitude != 0.0 && userLongitude != 0.0
+                                ? Text(
+                                    '${distance.toStringAsFixed(1)} kms away',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      fontFamily: 'TextFamily',
+                                      color: Colors.grey,
+                                    ),
+                                  )
+                                : Container(), // or any other widget you want to display when distance is not available
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 11, bottom: 7),
                             child: Text(
-                              '2 kms away',
+                              'Memberships: ${gym['Memberships']}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -289,13 +410,12 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(left: 11, bottom: 7),
+                            padding: const EdgeInsets.only(left: 11),
                             child: Text(
-                              '₹1000/month',
+                              '${gym['description']}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
-                                fontFamily: 'TextFamily',
                                 color: Colors.grey,
                               ),
                             ),
@@ -306,7 +426,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 );
               },
-              itemCount: gymPhotos.length,
+              itemCount: gymData.length,
             ),
           ],
         ),
