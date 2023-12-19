@@ -315,33 +315,61 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Reviews (${reviews.length})',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AddReviewWidget(gymData: widget.gymData);
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('gyms')
+                      .doc(widget.gymData['gymId'])
+                      .collection('reviews')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Text("Loading...");
+                    }
+
+                    List<Map<String, dynamic>> reviews = snapshot.data!.docs
+                        .map((doc) => doc.data() as Map<String, dynamic>)
+                        .toList();
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Reviews (${reviews.length})',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AddReviewWidget(gymData: widget.gymData);
+                              },
+                            );
                           },
-                        );
-                      },
-                      child: Text('Add Review'),
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.green,
-                        textStyle: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
+                          child: Text(
+                            'Add Review',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.green, // Background color
+                            textStyle: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
+              ),
+
+              SizedBox(
+                height: 10,
               ),
 
               StreamBuilder<QuerySnapshot>(
@@ -356,52 +384,64 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                   }
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Text("loading");
+                    return Text("Loading...");
                   }
 
                   reviews = snapshot.data!.docs
                       .map((doc) => doc.data() as Map<String, dynamic>)
                       .toList();
 
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: reviews.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        child: Card(
-                          elevation: 3,
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  reviews[index]['userPhoto'] ?? ''),
-                            ),
-                            title: Text(
-                              reviews[index]['username'] ?? '',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.star, color: Colors.yellow),
-                                    Text(reviews[index]['rating'].toString() ??
-                                        ''),
-                                  ],
-                                ),
-                                Text(reviews[index]['review'] ?? ''),
-                              ],
-                            ),
+                  return reviews.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No reviews yet, be the first one to review!',
+                            style: TextStyle(fontSize: 16),
                           ),
-                        ),
-                      );
-                    },
-                  );
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: reviews.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: Card(
+                                elevation: 3,
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                        reviews[index]['userPhoto'] ?? ''),
+                                  ),
+                                  title: Text(
+                                    reviews[index]['username'] ?? '',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(Icons.star,
+                                              color: Colors.yellow),
+                                          Text(reviews[index]['rating']
+                                                  .toString() ??
+                                              ''),
+                                        ],
+                                      ),
+                                      Text(reviews[index]['review'] ?? ''),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
                 },
               ),
+
               SizedBox(height: 16),
             ],
           ),

@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import 'BottomNagivationBar.dart';
@@ -89,25 +90,49 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
 
   Future<void> _imgFromGallery() async {
     Navigator.pop(context);
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50,
-    );
 
-    if (pickedFile != null) {
-      _cropImage(File(pickedFile.path));
+    PermissionStatus galleryStatus = await Permission.storage.request();
+
+    if (galleryStatus == PermissionStatus.granted) {
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 50,
+      );
+
+      if (pickedFile != null) {
+        _cropImage(File(pickedFile.path));
+      }
+    }
+    if (galleryStatus == PermissionStatus.denied) {
+      _showSnackbar('Gallery permission is required to pick a photo.');
+      return;
+    }
+    if (galleryStatus == PermissionStatus.permanentlyDenied) {
+      openAppSettings();
     }
   }
 
   Future<void> _imgFromCamera() async {
     Navigator.pop(context);
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 50,
-    );
 
-    if (pickedFile != null) {
-      _cropImage(File(pickedFile.path));
+    PermissionStatus cameraStatus = await Permission.camera.request();
+
+    if (cameraStatus == PermissionStatus.granted) {
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 50,
+      );
+
+      if (pickedFile != null) {
+        _cropImage(File(pickedFile.path));
+      }
+    }
+    if (cameraStatus == PermissionStatus.denied) {
+      _showSnackbar('Camera permission is required to upload a photo');
+      return;
+    }
+    if (cameraStatus == PermissionStatus.permanentlyDenied) {
+      openAppSettings();
     }
   }
 

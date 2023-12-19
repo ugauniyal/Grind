@@ -200,6 +200,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    bool anyGymWithin10Kms = gymData.any((gym) {
+      double distance = calculateDistance(
+        userLatitude,
+        userLongitude,
+        gym['latitude'] as double,
+        gym['longitude'] as double,
+      );
+      return distance <= 10.0;
+    });
+
     return Scaffold(
       extendBodyBehindAppBar: false,
       drawer: const NavBar(),
@@ -271,163 +281,191 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                var gym = gymData[index].data() as Map<String, dynamic>;
-                double distance = calculateDistance(
-                  userLatitude,
-                  userLongitude,
-                  gym['latitude'] as double,
-                  gym['longitude'] as double,
-                );
-                rating = (gym['rating'] ?? 0).toDouble();
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(child: Text("Gyms Near your location")),
+            ),
+            if (anyGymWithin10Kms)
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  var gym = gymData[index].data() as Map<String, dynamic>;
+                  double distance = calculateDistance(
+                    userLatitude,
+                    userLongitude,
+                    gym['latitude'] as double,
+                    gym['longitude'] as double,
+                  );
+                  rating = (gym['rating'] ?? 0).toDouble();
 
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => GymDetailsPage(gymData: gym)),
-                      );
-                    },
-                    child: Card(
-                      elevation: 10,
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(16),
-                                topLeft: Radius.circular(16)),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16.0),
-                                color: Colors.white,
-                              ),
-                              child: Image.network(
-                                gym['gym_photo1'],
-                                height: 250,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
+                  if (distance <= 10.0) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  GymDetailsPage(gymData: gym),
                             ),
+                          );
+                        },
+                        child: Card(
+                          elevation: 10,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 10, top: 8, bottom: 6.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(gym['name'],
-                                    style: TextStyle(
-                                        fontFamily: "TextName",
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18)),
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: _getStarColor(rating),
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                left: 8.0),
-                                            child: Icon(
-                                              Icons.star,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                          ),
-                                        ),
-                                        Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                left: 3.0, right: 10.0),
-                                            child: Text(
-                                              rating.toString(),
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w200,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(16),
+                                  topLeft: Radius.circular(16),
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16.0),
+                                    color: Colors.white,
+                                  ),
+                                  child: Image.network(
+                                    gym['gym_photo1'],
+                                    height: 250,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 11),
-                            child: Text(
-                              '${gym['gym_services']}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                                color: Colors.grey,
                               ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 11),
-                            child: userLatitude != 0.0 && userLongitude != 0.0
-                                ? Text(
-                                    '${distance.toStringAsFixed(1)} kms away',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      fontFamily: 'TextFamily',
-                                      color: Colors.grey,
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 10, top: 8, bottom: 6.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      gym['name'],
+                                      style: TextStyle(
+                                        fontFamily: "TextName",
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
                                     ),
-                                  )
-                                : Container(), // or any other widget you want to display when distance is not available
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 11, bottom: 7),
-                            child: Text(
-                              'Memberships: ${gym['Memberships']}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                fontFamily: 'TextFamily',
-                                color: Colors.grey,
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: _getStarColor(rating),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Center(
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 8.0),
+                                                child: Icon(
+                                                  Icons.star,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ),
+                                            Center(
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 3.0, right: 10.0),
+                                                child: Text(
+                                                  rating.toString(),
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w200,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 11),
-                            child: Text(
-                              '${gym['description']}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: Colors.grey,
+                              Padding(
+                                padding: const EdgeInsets.only(left: 11),
+                                child: Text(
+                                  '${gym['gym_services']}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ),
-                            ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 11),
+                                child:
+                                    userLatitude != 0.0 && userLongitude != 0.0
+                                        ? Text(
+                                            '${distance.toStringAsFixed(1)} kms away',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                              fontFamily: 'TextFamily',
+                                              color: Colors.grey,
+                                            ),
+                                          )
+                                        : Container(),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 11, bottom: 7),
+                                child: Text(
+                                  'Memberships: ${gym['Memberships']}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    fontFamily: 'TextFamily',
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 11),
+                                child: Text(
+                                  '${gym['description']}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              // ... other card contents ...
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              },
-              itemCount: gymData.length,
-            ),
+                    );
+                  } else {
+                    // This case should not be reached since we've filtered gyms before entering the builder
+                    return Container();
+                  }
+                },
+                itemCount: gymData.length,
+              )
+            else
+              Center(
+                child: Container(
+                  child: Text("No gym available near you :("),
+                ),
+              ),
           ],
         ),
       ),

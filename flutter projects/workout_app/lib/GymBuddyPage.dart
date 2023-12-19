@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+import 'dart:math';
 
 import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -20,12 +20,17 @@ class _GymBuddyState extends State<GymBuddy> {
   bool _loadingMoreUsers = false;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _requestsSubscription;
+  late double userLatitude;
+  late double userLongitude;
 
   @override
   void initState() {
     super.initState();
     _user = FirebaseAuth.instance.currentUser!;
     _loadFilteredUsers();
+    userLongitude = 0.0;
+    userLatitude = 0.0;
+    getCurrentUserLocation();
   }
 
   @override
@@ -57,72 +62,87 @@ class _GymBuddyState extends State<GymBuddy> {
     }
   }
 
-  Future<String> getPreference() async {
-    DocumentSnapshot<Map<String, dynamic>> userSnapshot =
+  Future<void> _loadFilteredUsers() async {
+    // Query the 'requests' subcollection for the logged-in user where pending = true
+    QuerySnapshot<Map<String, dynamic>> requestsSnapshot =
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_user.uid)
+            .collection('requests')
             .get();
 
-    if (userSnapshot.exists) {
-      // Check if the user document exists
-      String preference = userSnapshot.data()?['preference'] ?? '';
-      return preference;
+    // Get the list of swiped user IDs
+    List<String> swipedUserIds = requestsSnapshot.docs
+        .where((userDoc) => userDoc['swiped'] == true)
+        .map((swipedUserDoc) => swipedUserDoc.id)
+        .toList();
+
+    // Query all users excluding the swiped ones and the logged-in user
+    QuerySnapshot<Map<String, dynamic>> allUsersSnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
+
+    _filteredUsers = allUsersSnapshot.docs
+        .where((userDoc) =>
+            !swipedUserIds.contains(userDoc.id) && userDoc.id != _user.uid)
+        .map((userDoc) => UserData.fromMap(userDoc.data()))
+        .toList();
+
+    setState(() {
+      _filteredUsers = _filteredUsers;
+    });
+  }
+
+  Future<void> getCurrentUserLocation() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      try {
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+
+        double latitude = userSnapshot['latitude'];
+        double longitude = userSnapshot['longitude'];
+
+        setState(() {
+          userLatitude = latitude;
+          userLongitude = longitude;
+        });
+
+        print(
+            'Current User Location: Latitude - $latitude, Longitude - $longitude');
+      } catch (e) {
+        print('Error retrieving user location: $e');
+      }
     } else {
-      // Handle the case where the user document doesn't exist
-      return ''; // or throw an exception, return a default value, etc.
+      print('User not signed in.');
     }
   }
 
-  Future<void> _loadFilteredUsers() async {
-    try {
-      // Retrieve the user's preference
-      String userPreference = await getPreference();
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371; // Radius of the Earth in kilometers
 
-      // Query the 'requests' subcollection for the logged-in user where pending = true
-      QuerySnapshot<Map<String, dynamic>> requestsSnapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(_user.uid)
-              .collection('requests')
-              .get();
+    // Convert degrees to radians
+    double dLat = _degreesToRadians(lat2 - lat1);
+    double dLon = _degreesToRadians(lon2 - lon1);
 
-      // Get the list of swiped user IDs
-      List<String> swipedUserIds = requestsSnapshot.docs
-          .where((userDoc) => userDoc['swiped'] == true)
-          .map((swipedUserDoc) => swipedUserDoc.id)
-          .toList();
+    // Haversine formula
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
-      // Query all users excluding the swiped ones and the logged-in user
-      QuerySnapshot<Map<String, dynamic>> allUsersSnapshot =
-          await FirebaseFirestore.instance.collection('users').get();
+    // Distance in kilometers
+    double distance = earthRadius * c;
 
-      if (userPreference.toLowerCase() == 'both') {
-        // Show all users without gender filtering if preference is "Both"
-        _filteredUsers = allUsersSnapshot.docs
-            .where((userDoc) =>
-                !swipedUserIds.contains(userDoc.id) && userDoc.id != _user.uid)
-            .map((userDoc) => UserData.fromMap(userDoc.data()))
-            .toList();
-      } else {
-        // Show users filtered by gender if preference is "Men" or "Women"
-        _filteredUsers = allUsersSnapshot.docs
-            .where((userDoc) =>
-                !swipedUserIds.contains(userDoc.id) &&
-                userDoc.id != _user.uid &&
-                userDoc['gender'].toLowerCase() == userPreference.toLowerCase())
-            .map((userDoc) => UserData.fromMap(userDoc.data()))
-            .toList();
-      }
+    return distance;
+  }
 
-      setState(() {
-        _filteredUsers = _filteredUsers;
-      });
-    } catch (error) {
-      // Handle any potential errors
-      print('Error loading filtered users: $error');
-      // You can add additional error handling or show a message to the user.
-    }
+  double _degreesToRadians(double degrees) {
+    return degrees * pi / 180;
   }
 
   @override
@@ -147,6 +167,19 @@ class _GymBuddyState extends State<GymBuddy> {
                 double cardHeight = MediaQuery.of(context).size.height * 0.6;
                 String allInterests =
                     _filteredUsers[index].interests.join(', ');
+
+                // Retrieve latitude and longitude of the filtered user
+                double filteredUserLatitude = _filteredUsers[index].latitude;
+                double filteredUserLongitude = _filteredUsers[index].longitude;
+
+                // Calculate distance between logged-in user and filtered user
+                double distance = calculateDistance(
+                  userLatitude,
+                  userLongitude,
+                  filteredUserLatitude,
+                  filteredUserLongitude,
+                );
+
                 return Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
@@ -165,6 +198,9 @@ class _GymBuddyState extends State<GymBuddy> {
                             // Display all interests in a single line
                             if (_filteredUsers[index].interests.isNotEmpty)
                               Text('Interests: $allInterests'),
+
+                            // Display the distance between logged-in user and filtered user
+                            Text('Distance: ${distance.toStringAsFixed(2)} km'),
                           ],
                         ),
                       ),
@@ -233,8 +269,8 @@ class _GymBuddyState extends State<GymBuddy> {
     String? uid = _user?.uid;
 
     if (activity is Swipe) {
-      log('The card was swiped to the : ${activity.direction}');
-      log('previous index: $previousIndex, target index: $targetIndex');
+      // log('The card was swiped to the : ${activity.direction}');
+      // log('previous index: $previousIndex, target index: $targetIndex');
 
       try {
         // Create or update the request collection for the logged-in user
@@ -277,7 +313,7 @@ class _GymBuddyState extends State<GymBuddy> {
   }
 
   void _onEnd() {
-    log('end reached!');
+    // log('end reached!');
   }
 }
 
@@ -287,6 +323,8 @@ class UserData {
   final String age;
   final String? photoUrl;
   final String bio;
+  final double latitude;
+  final double longitude;
 
   final List<String> interests;
   UserData({
@@ -295,6 +333,8 @@ class UserData {
     required this.age,
     required this.bio,
     this.photoUrl,
+    required this.longitude,
+    required this.latitude,
     required this.interests,
   });
 
@@ -305,6 +345,8 @@ class UserData {
       age: map['age'] ?? '',
       bio: map['bio'] ?? '',
       photoUrl: map['photoUrl'] ?? '',
+      latitude: map['latitude'] ?? 0.0,
+      longitude: map['longitude'] ?? 0.0,
       interests: List<String>.from(map['interests'] ?? []),
     );
   }
