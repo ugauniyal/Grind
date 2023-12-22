@@ -33,10 +33,10 @@ class _verifyOtpScreenState extends State<verifyOtpScreen> {
 
       if (userExists) {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Nav()));
+            context, MaterialPageRoute(builder: (context) => const Nav()));
       } else if (userCredential.user != null) {
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => postPhone()));
+            context, MaterialPageRoute(builder: (context) => const postPhone()));
       }
     } on FirebaseAuthException catch (ex) {
       print(ex.code.toString());
@@ -66,7 +66,7 @@ class _verifyOtpScreenState extends State<verifyOtpScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Verify Otp"),
+        title: const Text("Verify Otp"),
       ),
       body: SafeArea(
         child: ListView(
@@ -78,17 +78,17 @@ class _verifyOtpScreenState extends State<verifyOtpScreen> {
                   TextField(
                     controller: otpController,
                     maxLength: 6,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                         labelText: "6-Digits Otp", counterText: ""),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 20,
                   ),
                   ElevatedButton(
                       onPressed: () {
                         verifyOTp();
                       },
-                      child: Text("Verify")),
+                      child: const Text("Verify")),
                 ],
               ),
             )

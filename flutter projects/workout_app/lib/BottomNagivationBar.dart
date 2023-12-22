@@ -5,7 +5,7 @@ import 'Explore_Page.dart';
 import 'GymBuddyPage.dart';
 
 class Nav extends StatefulWidget {
-  Nav({Key? key}) : super(key: key);
+  const Nav({super.key});
 
   @override
   _NavState createState() => _NavState();
@@ -18,14 +18,14 @@ class _NavState extends State<Nav> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-          preferredSize: Size.fromHeight(0.0),
+          preferredSize: const Size.fromHeight(0.0),
           child: AppBar(
             elevation: 0.0,
           )),
       body: _buildPage(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
-        unselectedLabelStyle: TextStyle(color: Colors.black),
-        selectedLabelStyle: TextStyle(color: Colors.red),
+        unselectedLabelStyle: const TextStyle(color: Colors.black),
+        selectedLabelStyle: const TextStyle(color: Colors.red),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.red,
         currentIndex: _currentIndex,
@@ -55,11 +55,11 @@ class _NavState extends State<Nav> {
   Widget _buildPage(int index) {
     switch (index) {
       case 0:
-        return MyHomePage(); // Replace with your home page content.
+        return const MyHomePage(); // Replace with your home page content.
       case 1:
-        return GymBuddy();
+        return const GymBuddy();
       case 2:
-        return ExplorePage();
+        return const ExplorePage();
       // Replace with your Explore page.
       // Add cases for Gym Buddy and Chat pages, similarly.
       default:

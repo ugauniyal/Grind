@@ -17,7 +17,7 @@ class _forgotPasswordState extends State<forgotPassword> {
     showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => Center(
+        builder: (context) => const Center(
               child: CircularProgressIndicator(),
             ));
 
@@ -49,10 +49,11 @@ class _forgotPasswordState extends State<forgotPassword> {
     super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reset password'),
+        title: const Text('Reset password'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -60,12 +61,12 @@ class _forgotPasswordState extends State<forgotPassword> {
           key: formkey,
           child: Column(
             children: [
-              Text(
+              const Text(
                 'Receive an email to\nreset your password',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 24),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               TextFormField(
@@ -78,15 +79,15 @@ class _forgotPasswordState extends State<forgotPassword> {
                         ? "Enter a valid email"
                         : null,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size.fromHeight(50),
+                  minimumSize: const Size.fromHeight(50),
                 ),
-                icon: Icon(Icons.email_outlined),
-                label: Text(
+                icon: const Icon(Icons.email_outlined),
+                label: const Text(
                   'Reset Password',
                   style: TextStyle(fontSize: 24),
                 ),

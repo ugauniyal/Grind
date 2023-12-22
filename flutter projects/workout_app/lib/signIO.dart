@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:workout_app/PostGoogle.dart';
 import 'package:workout_app/sign-in-with-phone.dart';
+import 'package:workout_app/terms_of_use.dart';
 
 import 'BottomNagivationBar.dart';
 import 'ForgotPasswordPage.dart';
@@ -47,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (userCredential.user != null) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Nav()),
+            MaterialPageRoute(builder: (context) => const Nav()),
           );
         }
       } on FirebaseAuthException catch (ex) {
@@ -58,10 +59,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<UserCredential> signInWithGoogle() async {
     try {
-      // Sign out from Google if the user is signed in with Google
       await GoogleSignIn().signOut();
 
-      // Initiate Google Sign-In
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
       if (googleUser == null) {
@@ -76,19 +75,15 @@ class _LoginScreenState extends State<LoginScreen> {
         idToken: googleAuth.idToken,
       );
 
-      // Sign in with Firebase using the obtained credentials
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
 
       final user = userCredential.user;
       if (user != null) {
-        // Get the user's UID
         String uid = user.uid;
 
-        // Check if the user exists in Firestore
         bool userExists = await doesUserExist(uid);
 
-        // If the user doesn't exist, update Firestore
         if (!userExists) {
           await FirebaseFirestore.instance.collection('users').doc(uid).set({
             'uid': uid,
@@ -99,12 +94,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => PostGoogle()),
+            MaterialPageRoute(builder: (context) => const PostGoogle()),
           );
         } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Nav()),
+            MaterialPageRoute(builder: (context) => const Nav()),
           );
         }
       }
@@ -112,20 +107,15 @@ class _LoginScreenState extends State<LoginScreen> {
       return userCredential;
     } on FirebaseAuthException catch (e) {
       _showSnackbar('Failed to sign in with Google: ${e.message}');
-      throw e;
+      rethrow;
     }
   }
 
   Future<bool> doesUserExist(String uid) async {
-    // Check if the user exists in Firestore
     DocumentSnapshot snapshot =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
     return snapshot.exists;
-  }
-
-  void _signInWithFacebook() {
-    // Add Facebook sign-in logic here
   }
 
   @override
@@ -139,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: 30.0),
+                const SizedBox(height: 30.0),
                 const Text(
                   "Grind",
                   style: TextStyle(
@@ -147,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 30.0),
+                const SizedBox(height: 30.0),
                 Align(
                   alignment: Alignment.center,
                   child: Text(
@@ -159,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20.0),
+                const SizedBox(height: 20.0),
                 TextField(
                   controller: _emailController,
                   cursorColor: Colors.black,
@@ -173,9 +163,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       filled: true,
                       focusColor: Colors.black,
                       fillColor: Colors.grey.shade200,
-                      contentPadding: EdgeInsets.all(12.0)),
+                      contentPadding: const EdgeInsets.all(12.0)),
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 TextField(
                   cursorColor: Colors.black,
                   controller: _passwordController,
@@ -189,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderSide: BorderSide(color: Colors.grey.shade400)),
                       filled: true,
                       fillColor: Colors.grey.shade200,
-                      contentPadding: EdgeInsets.all(12.0),
+                      contentPadding: const EdgeInsets.all(12.0),
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
@@ -204,14 +194,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       )),
                 ),
-                SizedBox(height: 12.0),
+                const SizedBox(height: 12.0),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       GestureDetector(
-                        child: Text(
+                        child: const Text(
                           'Forgot Password?',
                           style: TextStyle(
                             color: Colors.grey,
@@ -219,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
-                                builder: (context) => forgotPassword())),
+                                builder: (context) => const forgotPassword())),
                       ),
                     ],
                   ),
@@ -286,15 +276,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => SignUpPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const SignUpPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green, // Button color
                   ),
-                  child: Text('Sign Up'),
+                  child: const Text('Sign Up'),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 30,
                 ),
                 Row(
@@ -313,27 +304,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16.0),
-                    InkWell(
-                      onTap: _signInWithFacebook,
-                      child: Image.network(
-                        'https://upload.wikimedia.org/wikipedia/commons/6/6c/Facebook_Logo_2023.png',
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                    const SizedBox(width: 11.0),
                     CupertinoButton(
                         onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => signInWithPhone()),
+                                builder: (context) => const signInWithPhone()),
                           );
                         },
-                        child: Text("Log in with Phone")),
+                        child: const Text("Log in with Phone")),
                   ],
                 ),
+
+                const TermsOfUse(),
               ],
             ),
           ),

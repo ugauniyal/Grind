@@ -13,7 +13,7 @@ import 'package:workout_app/AuthCheck.dart';
 import 'package:workout_app/BottomNagivationBar.dart';
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({Key? key});
+  const EditProfilePage({super.key});
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -204,8 +204,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
               children: [
                 Expanded(
                   child: InkWell(
-                    child: Column(
-                      children: const [
+                    child: const Column(
+                      children: [
                         Icon(
                           Icons.image,
                           size: 60.0,
@@ -221,7 +221,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     onTap: () async {
                       await _imgFromGalleryForProfile();
                       // Close the bottom sheet after a slight delay
-                      Future.delayed(Duration(milliseconds: 200), () {
+                      Future.delayed(const Duration(milliseconds: 200), () {
                         Navigator.pop(context);
                       });
                     },
@@ -229,9 +229,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
                 Expanded(
                   child: InkWell(
-                    child: SizedBox(
+                    child: const SizedBox(
                       child: Column(
-                        children: const [
+                        children: [
                           Icon(
                             Icons.camera_alt,
                             size: 60.0,
@@ -248,7 +248,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     onTap: () async {
                       await _imgFromCameraForProfile();
                       // Close the bottom sheet after a slight delay
-                      Future.delayed(Duration(milliseconds: 200), () {
+                      Future.delayed(const Duration(milliseconds: 200), () {
                         Navigator.pop(context);
                       });
                     },
@@ -305,7 +305,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         UploadTask uploadTask = FirebaseStorage.instance
             .ref()
             .child("ProfilePictures_folder")
-            .child(Uuid().v1())
+            .child(const Uuid().v1())
             .putFile(profilePic!);
 
         TaskSnapshot taskSnapshot = await uploadTask;
@@ -362,8 +362,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
               children: [
                 Expanded(
                   child: InkWell(
-                    child: Column(
-                      children: const [
+                    child: const Column(
+                      children: [
                         Icon(
                           Icons.image,
                           size: 60.0,
@@ -384,9 +384,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
                 Expanded(
                   child: InkWell(
-                    child: SizedBox(
+                    child: const SizedBox(
                       child: Column(
-                        children: const [
+                        children: [
                           Icon(
                             Icons.camera_alt,
                             size: 60.0,
@@ -496,7 +496,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         UploadTask uploadTask = FirebaseStorage.instance
             .ref()
             .child("ViewerPictures_folder")
-            .child(Uuid().v1())
+            .child(const Uuid().v1())
             .putFile(convertedFile);
 
         TaskSnapshot taskSnapshot = await uploadTask;
@@ -516,7 +516,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         print("View Photo URL: $viewPhotoUrl");
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => EditProfilePage()),
+          MaterialPageRoute(builder: (context) => const EditProfilePage()),
         );
       } catch (error) {
         print("Error uploading image: $error");
@@ -554,6 +554,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  @override
   void initState() {
     super.initState();
     getDownloadUrl();
@@ -653,12 +654,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
       appBar: AppBar(
         leading: BackButton(
           onPressed: () => Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Nav())),
+              context, MaterialPageRoute(builder: (context) => const Nav())),
         ),
         elevation: 0,
         backgroundColor: Colors.white54,
-        iconTheme: IconThemeData(color: Colors.black),
-        title: Text(
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text(
           "Edit Your Profile",
           style: TextStyle(color: Colors.black),
         ),
@@ -693,8 +694,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: <Widget>[
                                     ListTile(
-                                      leading: Icon(Icons.photo),
-                                      title: Text('Change current Photo'),
+                                      leading: const Icon(Icons.photo),
+                                      title: const Text('Change current Photo'),
                                       onTap: () {
                                         Navigator.pop(
                                             context); // Close the bottom sheet
@@ -703,8 +704,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                       },
                                     ),
                                     ListTile(
-                                      leading: Icon(Icons.delete),
-                                      title: Text('Delete Current Photo'),
+                                      leading: const Icon(Icons.delete),
+                                      title: const Text('Delete Current Photo'),
                                       onTap: () {
                                         Navigator.pop(
                                             context); // Close the bottom sheet
@@ -716,14 +717,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               },
                             );
                           },
-                          child: Text(
+                          child: const Text(
                             "Edit Profile Picture",
                             style: TextStyle(fontSize: 14, color: Colors.blue),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 10,
                     ),
                     Column(
@@ -748,8 +749,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: <Widget>[
                                     ListTile(
-                                      leading: Icon(Icons.photo),
-                                      title: Text('Change Photo'),
+                                      leading: const Icon(Icons.photo),
+                                      title: const Text('Change Photo'),
                                       onTap: () {
                                         Navigator.pop(
                                             context); // Close the bottom sheet
@@ -758,8 +759,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                       },
                                     ),
                                     ListTile(
-                                      leading: Icon(Icons.delete),
-                                      title: Text('Delete Current Photo'),
+                                      leading: const Icon(Icons.delete),
+                                      title: const Text('Delete Current Photo'),
                                       onTap: () {
                                         Navigator.pop(
                                             context); // Close the bottom sheet
@@ -771,7 +772,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               },
                             );
                           },
-                          child: Text(
+                          child: const Text(
                             "Edit Grind Picture",
                             style: TextStyle(fontSize: 14, color: Colors.blue),
                           ),
@@ -780,10 +781,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Expanded(
@@ -798,18 +799,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       focusNode: nameFocusNode,
                       decoration: InputDecoration(
                         labelText: "Name",
-                        labelStyle: TextStyle(color: Colors.black),
+                        labelStyle: const TextStyle(color: Colors.black),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(color: Colors.black),
+                          borderSide: const BorderSide(color: Colors.black),
                         ),
                         focusColor: Colors.black,
                         suffixIcon: isNameChanged
                             ? IconButton(
-                                icon: Icon(Icons.check),
+                                icon: const Icon(Icons.check),
                                 onPressed: updateName,
                               )
                             : null,
@@ -817,7 +818,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
@@ -833,18 +834,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     focusNode: usernameFocusNode,
                     decoration: InputDecoration(
                       labelText: "Username",
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle: const TextStyle(color: Colors.black),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       focusColor: Colors.black,
                       suffixIcon: isUsernameChanged
                           ? IconButton(
-                              icon: Icon(Icons.check),
+                              icon: const Icon(Icons.check),
                               onPressed: () => updateUsername(),
                             )
                           : null,
@@ -862,7 +863,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
@@ -878,25 +879,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     maxLengthEnforcement: MaxLengthEnforcement.enforced,
                     decoration: InputDecoration(
                       labelText: "Bio",
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle: const TextStyle(color: Colors.black),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       focusColor: Colors.black,
                       suffixIcon: isBioChanged
                           ? IconButton(
-                              icon: Icon(Icons.check),
+                              icon: const Icon(Icons.check),
                               onPressed: updateBio,
                             )
                           : null,
                     ),
                   ),
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: isGoogleSignIn // Conditionally show or hide "Change Password?" based on Google Sign-In
@@ -908,7 +909,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => AuthCheck()),
+                                      builder: (context) => const AuthCheck()),
                                 );
                                 // Additional code to execute after navigating (if needed)
                               },

@@ -22,7 +22,7 @@ Color _getStarColor(double rating) {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, this.title}) : super(key: key);
+  const MyHomePage({super.key, this.title});
 
   final String? title;
 
@@ -34,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int currentIndex1 = 0;
   double rating = 3.2;
   bool _isMounted = false;
+
   late List<DocumentSnapshot> gymData = [];
 
   late double userLatitude;
@@ -46,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
 
   Position? _currentLocation;
-  String _currentAddress = '';
+  final String _currentAddress = '';
   late bool servicePermission = false;
   late LocationPermission permission;
 
@@ -218,7 +219,7 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 0.0,
         title: Container(
           padding: EdgeInsets.zero,
-          child: Text('Grind', style: TextStyle(fontSize: 30)),
+          child: const Text('Grind', style: TextStyle(fontSize: 30)),
         ),
         centerTitle: true,
         primary: false,
@@ -226,10 +227,10 @@ class _MyHomePageState extends State<MyHomePage> {
           GestureDetector(
             onTap: () {
               Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => ChatPage()));
+                  context, MaterialPageRoute(builder: (context) => const ChatPage()));
             },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 10.0),
+            child: const Padding(
+              padding: EdgeInsets.only(right: 10.0),
               child: ClipOval(
                 child: Icon(
                   Icons.chat,
@@ -281,23 +282,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
               child: Center(child: Text("Gyms Near your location")),
             ),
             if (anyGymWithin10Kms)
               ListView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   var gym = gymData[index].data() as Map<String, dynamic>;
+
                   double distance = calculateDistance(
                     userLatitude,
                     userLongitude,
                     gym['latitude'] as double,
                     gym['longitude'] as double,
                   );
-                  rating = (gym['rating'] ?? 0).toDouble();
+
+                  String updatedRating =
+                      gym['rating'].toStringAsFixed(1) ?? 0.0;
 
                   if (distance <= 10.0) {
                     return Padding(
@@ -307,8 +311,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  GymDetailsPage(gymData: gym),
+                              builder: (context) => GymDetailsPage(
+                                  gymData: gym, updatedRating: rating),
                             ),
                           );
                         },
@@ -348,7 +352,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   children: [
                                     Text(
                                       gym['name'],
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontFamily: "TextName",
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -365,9 +369,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ),
                                         child: Row(
                                           children: [
-                                            Center(
+                                            const Center(
                                               child: Padding(
-                                                padding: const EdgeInsets.only(
+                                                padding: EdgeInsets.only(
                                                     left: 8.0),
                                                 child: Icon(
                                                   Icons.star,
@@ -381,8 +385,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 padding: const EdgeInsets.only(
                                                     left: 3.0, right: 10.0),
                                                 child: Text(
-                                                  rating.toString(),
-                                                  style: TextStyle(
+                                                  updatedRating,
+                                                  style: const TextStyle(
                                                     color: Colors.white,
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.w200,
@@ -401,7 +405,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 padding: const EdgeInsets.only(left: 11),
                                 child: Text(
                                   '${gym['gym_services']}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 11,
                                     color: Colors.grey,
@@ -414,7 +418,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     userLatitude != 0.0 && userLongitude != 0.0
                                         ? Text(
                                             '${distance.toStringAsFixed(1)} kms away',
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 13,
                                               fontFamily: 'TextFamily',
@@ -428,7 +432,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     const EdgeInsets.only(left: 11, bottom: 7),
                                 child: Text(
                                   'Memberships: ${gym['Memberships']}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                     fontFamily: 'TextFamily',
@@ -440,7 +444,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 padding: const EdgeInsets.only(left: 11),
                                 child: Text(
                                   '${gym['description']}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                     color: Colors.grey,
@@ -463,7 +467,7 @@ class _MyHomePageState extends State<MyHomePage> {
             else
               Center(
                 child: Container(
-                  child: Text("No gym available near you :("),
+                  child: const Text("No gym available near you :("),
                 ),
               ),
           ],

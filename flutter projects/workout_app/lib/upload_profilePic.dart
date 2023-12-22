@@ -12,7 +12,7 @@ import 'package:uuid/uuid.dart';
 import 'BottomNagivationBar.dart';
 
 class UploadProfilePic extends StatefulWidget {
-  const UploadProfilePic({Key? key}) : super(key: key);
+  const UploadProfilePic({super.key});
 
   @override
   _UploadProfilePicState createState() => _UploadProfilePicState();
@@ -38,8 +38,8 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
               children: [
                 Expanded(
                   child: InkWell(
-                    child: Column(
-                      children: const [
+                    child: const Column(
+                      children: [
                         Icon(
                           Icons.image,
                           size: 60.0,
@@ -59,9 +59,9 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
                 ),
                 Expanded(
                   child: InkWell(
-                    child: SizedBox(
+                    child: const SizedBox(
                       child: Column(
-                        children: const [
+                        children: [
                           Icon(
                             Icons.camera_alt,
                             size: 60.0,
@@ -147,7 +147,7 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
       UploadTask uploadTask = FirebaseStorage.instance
           .ref()
           .child("ProfilePictures_folder")
-          .child(Uuid().v1())
+          .child(const Uuid().v1())
           .putFile(profilePic!);
 
       TaskSnapshot taskSnapshot = await uploadTask;
@@ -162,7 +162,7 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
       // Navigate to the homepage after the image is uploaded and saved
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Nav()),
+        MaterialPageRoute(builder: (context) => const Nav()),
       );
     } else {
       print("no image selected");
@@ -226,7 +226,7 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Upload Profile Picture'),
+        title: const Text('Upload Profile Picture'),
       ),
       body: Center(
         child: Column(
@@ -244,22 +244,22 @@ class _UploadProfilePicState extends State<UploadProfilePic> {
                 backgroundColor: Colors.black,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 showImagePicker(context);
               },
-              child: Text('Upload Profile Picture'),
+              child: const Text('Upload Profile Picture'),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextButton(
               onPressed: () {
-                Navigator.pushReplacement(
-                    context, MaterialPageRoute(builder: (context) => Nav()));
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) => const Nav()));
                 // Implement the logic to skip this step
                 // For example, you can navigate to the next page
               },
-              child: Text('Skip'),
+              child: const Text('Skip'),
             ),
           ],
         ),

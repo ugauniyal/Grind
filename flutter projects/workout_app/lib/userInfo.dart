@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:workout_app/upload_profilePic.dart';
 
 class userInfo extends StatefulWidget {
-  const userInfo({Key? key}) : super(key: key);
+  const userInfo({super.key});
 
   @override
   State<userInfo> createState() => _userInfoState();
 }
 
 class _userInfoState extends State<userInfo> {
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _dobController = TextEditingController();
-  TextEditingController _bioController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
   String? _genderValue = "Select";
 
   Future<void> _selectDate(BuildContext context) async {
@@ -27,8 +27,8 @@ class _userInfoState extends State<userInfo> {
           data: ThemeData.light().copyWith(
             primaryColor: Colors.black,
             hintColor: Colors.black,
-            colorScheme: ColorScheme.light(primary: Colors.black),
-            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+            colorScheme: const ColorScheme.light(primary: Colors.black),
+            buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
           ),
           child: child!,
         );
@@ -54,7 +54,7 @@ class _userInfoState extends State<userInfo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Credentials'),
+        title: const Text('User Credentials'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -64,12 +64,12 @@ class _userInfoState extends State<userInfo> {
             // Name TextField
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Name',
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
 
             // Date of Birth TextFormField
             TextFormField(
@@ -78,44 +78,44 @@ class _userInfoState extends State<userInfo> {
               onTap: () => _selectDate(context),
               validator: _validateDOB,
               cursorColor: Colors.black,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Date of Birth',
                 suffixIcon: Icon(Icons.calendar_today),
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
 
             // Bio TextField
             TextField(
               controller: _bioController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Bio',
                 border: OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
 
             // Gender DropdownButtonFormField
             DropdownButtonFormField(
               value: _genderValue,
               items: const [
                 DropdownMenuItem(
-                  child: Text("Select"),
                   value: "Select",
                   enabled: false,
+                  child: Text("Select"),
                 ),
-                DropdownMenuItem(child: Text("Male"), value: "Male"),
-                DropdownMenuItem(child: Text("Female"), value: "Female"),
+                DropdownMenuItem(value: "Male", child: Text("Male")),
+                DropdownMenuItem(value: "Female", child: Text("Female")),
               ],
               isExpanded: true,
               decoration: InputDecoration(
                 labelText: 'Sex',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.grey[200],
-                contentPadding: EdgeInsets.all(12.0),
+                contentPadding: const EdgeInsets.all(12.0),
               ),
               onChanged: (Object? value) {
                 setState(() {
@@ -123,7 +123,7 @@ class _userInfoState extends State<userInfo> {
                 });
               },
             ),
-            SizedBox(height: 24.0),
+            const SizedBox(height: 24.0),
 
             // Submit Button
             ElevatedButton(
@@ -134,7 +134,7 @@ class _userInfoState extends State<userInfo> {
                   _showSnackbar("Please enter a valid Date of Birth");
                 }
               },
-              child: Text('Submit'),
+              child: const Text('Submit'),
             ),
           ],
         ),
@@ -176,7 +176,7 @@ class _userInfoState extends State<userInfo> {
 
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => UploadProfilePic()),
+          MaterialPageRoute(builder: (context) => const UploadProfilePic()),
         );
       }
     } on FirebaseAuthException catch (ex) {
@@ -195,7 +195,7 @@ class _userInfoState extends State<userInfo> {
 }
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: userInfo(),
   ));
 }

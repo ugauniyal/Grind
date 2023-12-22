@@ -24,16 +24,20 @@ class GymDetailsPage extends StatefulWidget {
   // final int gymIndex;
   final Map<String, dynamic> gymData;
 
-  GymDetailsPage({required this.gymData});
+  const GymDetailsPage({super.key, 
+    required this.gymData,
+    required double updatedRating,
+  });
 
   @override
   State<GymDetailsPage> createState() => _GymDetailsPageState();
 }
 
 class _GymDetailsPageState extends State<GymDetailsPage> {
-  String _currentAddress = '';
+  final String _currentAddress = '';
   bool _isMounted = false;
-
+  double averageRating = 0.0;
+  double _gymRating = 0.0;
   late double userLatitude;
   late double userLongitude;
 
@@ -61,7 +65,24 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
   //   } catch (e) {
   //     print(e);
   //   }
-  // }
+  // }\
+
+  Future<void> _getGymRating() async {
+    try {
+      DocumentSnapshot gymSnapshot = await FirebaseFirestore.instance
+          .collection('gyms')
+          .doc(widget.gymData['gymId'])
+          .get();
+
+      double gymRating = gymSnapshot['rating'] ?? 0.0;
+
+      setState(() {
+        _gymRating = gymRating;
+      });
+    } catch (e) {
+      print('Error getting gym rating: $e');
+    }
+  }
 
   Future<void> fetchReviews() async {
     try {
@@ -91,6 +112,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
     userLatitude = 0.0;
     getCurrentUserLocation();
     fetchReviews();
+    _getGymRating();
     // _getAddressFromGymCoordinates();
   }
 
@@ -109,6 +131,21 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
     } else {
       throw 'Could not launch $googleMapsUrl';
     }
+  }
+
+  Future<bool> hasUserReviewed() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      DocumentSnapshot userReview = await FirebaseFirestore.instance
+          .collection('gyms')
+          .doc(widget.gymData['gymId'])
+          .collection('reviews')
+          .doc(currentUser.uid)
+          .get();
+
+      return userReview.exists;
+    }
+    return false;
   }
 
   Future<void> getCurrentUserLocation() async {
@@ -179,7 +216,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
     String memberships =
         (widget.gymData['Memberships'] as List<dynamic>).join(', ');
     if (widget.gymData == null) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: Text('Error: Gym data is null'),
         ),
@@ -187,7 +224,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
     } else {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Gym Details'),
+          title: const Text('Gym Details'),
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -202,7 +239,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                   aspectRatio: 16 / 9,
                   autoPlayCurve: Curves.fastOutSlowIn,
                   enableInfiniteScroll: true,
-                  autoPlayAnimationDuration: Duration(milliseconds: 800),
+                  autoPlayAnimationDuration: const Duration(milliseconds: 800),
                   viewportFraction: 0.8,
                 ),
                 items: [
@@ -214,7 +251,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                       fit: BoxFit.cover),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Gym Name and Rating
               Padding(
@@ -224,7 +261,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                   children: [
                     Text(
                       widget.gymData['name'],
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -233,12 +270,11 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                       children: [
                         Icon(
                           Icons.star,
-                          color: _getStarColor(
-                              widget.gymData['rating'].toDouble()),
+                          color: _getStarColor(_gymRating),
                         ),
                         Text(
-                          widget.gymData['rating'].toString(),
-                          style: TextStyle(
+                          _gymRating.toStringAsFixed(1),
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -259,20 +295,20 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                   },
                   child: Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.grey),
-                      SizedBox(width: 8),
-                      Text(
+                      const Icon(Icons.location_on, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      const Text(
                         'Open in Maps',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                       if (userLatitude != 0.0 && userLongitude != 0.0)
                         Text(
                           '${distance.toStringAsFixed(1)} kms away',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             color: Colors.grey,
                           ),
@@ -287,7 +323,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   widget.gymData['description'],
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                   ),
                 ),
@@ -295,21 +331,21 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
 
               // Additional Features (you can add more as needed)
               ListTile(
-                leading: Icon(Icons.access_time),
-                title: Text('Open Hours'),
+                leading: const Icon(Icons.access_time),
+                title: const Text('Open Hours'),
                 subtitle: Text(openHrs),
               ),
 
               // Additional Features (you can add more as needed)
               ListTile(
-                leading: Icon(Icons.access_time),
-                title: Text('Closing Hours'),
+                leading: const Icon(Icons.access_time),
+                title: const Text('Closing Hours'),
                 subtitle: Text(closeHrs),
               ),
 
               ListTile(
-                leading: Icon(Icons.payment),
-                title: Text('Membership Fee'),
+                leading: const Icon(Icons.payment),
+                title: const Text('Membership Fee'),
                 subtitle: Text(memberships),
               ),
 
@@ -327,48 +363,56 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                     }
 
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Text("Loading...");
+                      return const Text("Loading...");
                     }
 
-                    List<Map<String, dynamic>> reviews = snapshot.data!.docs
+                    reviews = snapshot.data!.docs
                         .map((doc) => doc.data() as Map<String, dynamic>)
                         .toList();
 
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Reviews (${reviews.length})',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                    bool hasUserReviewed = reviews.any((review) =>
+                        review['userId'] ==
+                        FirebaseAuth.instance.currentUser?.uid);
+
+                    return Column(children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Reviews (${reviews.length})',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AddReviewWidget(gymData: widget.gymData);
+                          if (!hasUserReviewed)
+                            ElevatedButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AddReviewWidget(
+                                        gymData: widget.gymData);
+                                  },
+                                );
                               },
-                            );
-                          },
-                          child: Text(
-                            'Add Review',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            primary: Colors.green, // Background color
-                            textStyle: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    );
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green, // Background color
+                                textStyle: const TextStyle(color: Colors.white),
+                              ),
+                              child: const Text(
+                                'Add Review',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ]);
                   },
                 ),
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
@@ -384,15 +428,19 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                   }
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Text("Loading...");
+                    return const Text("Loading...");
                   }
 
                   reviews = snapshot.data!.docs
                       .map((doc) => doc.data() as Map<String, dynamic>)
                       .toList();
 
+                  bool hasUserReviewed = reviews.any((review) =>
+                      review['userId'] ==
+                      FirebaseAuth.instance.currentUser?.uid);
+
                   return reviews.isEmpty
-                      ? Center(
+                      ? const Center(
                           child: Text(
                             'No reviews yet, be the first one to review!',
                             style: TextStyle(fontSize: 16),
@@ -400,7 +448,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                         )
                       : ListView.builder(
                           shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           itemCount: reviews.length,
                           itemBuilder: (context, index) {
                             return Padding(
@@ -416,7 +464,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                                   title: Text(
                                     reviews[index]['username'] ?? '',
                                     style:
-                                        TextStyle(fontWeight: FontWeight.bold),
+                                        const TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   subtitle: Column(
                                     crossAxisAlignment:
@@ -424,7 +472,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                                     children: [
                                       Row(
                                         children: [
-                                          Icon(Icons.star,
+                                          const Icon(Icons.star,
                                               color: Colors.yellow),
                                           Text(reviews[index]['rating']
                                                   .toString() ??
@@ -442,7 +490,7 @@ class _GymDetailsPageState extends State<GymDetailsPage> {
                 },
               ),
 
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
           ),
         ),

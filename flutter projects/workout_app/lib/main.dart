@@ -21,7 +21,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +29,13 @@ class MyApp extends StatelessWidget {
       title: 'Grind',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        cardTheme: CardTheme(
+        cardTheme: const CardTheme(
           color: Colors.white,
         ),
-        colorScheme: ColorScheme.light(
+        colorScheme: const ColorScheme.light(
           primary: Colors.black,
         ),
-        buttonTheme: ButtonThemeData(
+        buttonTheme: const ButtonThemeData(
           buttonColor: Colors.red,
         ),
         useMaterial3: true,
@@ -45,13 +45,13 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.white,
         ),
         scaffoldBackgroundColor: Colors.white,
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           displayLarge: TextStyle(color: Colors.black),
           displayMedium: TextStyle(color: Colors.black),
           displaySmall: TextStyle(color: Colors.black),
         ),
       ),
-      home: SplashScreen(),
+      home: const SplashScreen(),
     );
   }
 }

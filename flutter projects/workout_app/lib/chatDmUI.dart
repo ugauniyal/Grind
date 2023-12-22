@@ -12,11 +12,11 @@ class ChatDmUI extends StatefulWidget {
   final String? profilePicUrl;
 
   const ChatDmUI({
-    Key? key,
+    super.key,
     required this.receiverUserUsername,
     required this.receiverUserID,
     required this.profilePicUrl,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatDmUI> createState() => _ChatDmUIState();
@@ -25,13 +25,13 @@ class ChatDmUI extends StatefulWidget {
 class ReadIndicator extends StatelessWidget {
   final bool isRead;
 
-  const ReadIndicator({Key? key, required this.isRead}) : super(key: key);
+  const ReadIndicator({super.key, required this.isRead});
 
   @override
   Widget build(BuildContext context) {
     return isRead
-        ? Icon(Icons.check, color: Colors.blue) // Display checkmark if read
-        : Icon(Icons.access_time,
+        ? const Icon(Icons.check, color: Colors.blue) // Display checkmark if read
+        : const Icon(Icons.access_time,
             color: Colors.grey); // Display clock if unread
   }
 }
@@ -59,7 +59,7 @@ class _ChatDmUIState extends State<ChatDmUI> {
       // Optional: Scroll to the bottom after sending the message
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
       );
     }
@@ -71,7 +71,7 @@ class _ChatDmUIState extends State<ChatDmUI> {
     _scrollController = ScrollController();
 
     // Set initial scroll position to the bottom
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     });
   }
@@ -89,7 +89,7 @@ class _ChatDmUIState extends State<ChatDmUI> {
       alignment: Alignment.center,
       child: Text(
         dateAndDay,
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 16.0,
         ),
@@ -110,10 +110,10 @@ class _ChatDmUIState extends State<ChatDmUI> {
                     'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               widget.receiverUserUsername,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -250,8 +250,8 @@ class _ChatDmUIState extends State<ChatDmUI> {
           ),
           // Display read indicator
           if (alignment == Alignment.centerLeft && (data['read'] ?? false))
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
+            const Padding(
+              padding: EdgeInsets.only(left: 8.0),
               child: Text(
                 'Seen',
                 style: TextStyle(
@@ -281,9 +281,9 @@ class _ChatDmUIState extends State<ChatDmUI> {
                 controller: _messageController,
                 obscureText: false,
                 cursorColor: Colors.black,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12.0),
                 ),
               ),
             ),

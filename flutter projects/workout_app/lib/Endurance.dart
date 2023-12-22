@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
 class Endurance extends StatelessWidget {
-  const Endurance({Key? key}) : super(key: key);
+  const Endurance({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Endurance Training'),
+        title: const Text('Endurance Training'),
       ),
       body: ListView(
         children: [
           Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0), // Adjust the padding as needed
+              padding: const EdgeInsets.all(16.0), // Adjust the padding as needed
               child: ClipRRect(
                 borderRadius:
                     BorderRadius.circular(12.0), // Adjust the radius as needed
@@ -26,8 +26,8 @@ class Endurance extends StatelessWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          const Padding(
+            padding: EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -32,7 +32,7 @@ class _NavBarState extends State<NavBar> {
       Navigator.popUntil(context, (route) => route.isFirst);
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     } catch (e) {
       print('Error during sign-out: $e');
@@ -115,14 +115,14 @@ class _NavBarState extends State<NavBar> {
 
                   return Text(
                     displayName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   );
                 } else {
                   // Return a placeholder while waiting for data
-                  return Text(
+                  return const Text(
                     'Loading...',
                     style: TextStyle(
                       color: Colors.black,
@@ -148,14 +148,14 @@ class _NavBarState extends State<NavBar> {
 
                   return Text(
                     bio,
-                    style: TextStyle(color: Colors.black),
+                    style: const TextStyle(color: Colors.black),
                     maxLines: null, // Set maxLines to null for unlimited lines
                     overflow: TextOverflow
                         .visible, // Set overflow to visible to show all lines
                   );
                 } else {
                   // Return a placeholder while waiting for data
-                  return Text(
+                  return const Text(
                     'Loading...',
                     style: TextStyle(
                       color: Colors.black,
@@ -212,11 +212,11 @@ class _NavBarState extends State<NavBar> {
 
           // Your ListTile code
           ListTile(
-            leading: Icon(Icons.people),
+            leading: const Icon(Icons.people),
             title: Row(
               children: [
-                Text('Gym Buddies'),
-                Spacer(),
+                const Text('Gym Buddies'),
+                const Spacer(),
                 FutureBuilder<int>(
                   future:
                       FriendRequestService.getFriendRequestsCount(user!.uid),
@@ -238,7 +238,7 @@ class _NavBarState extends State<NavBar> {
                           friendRequestsCount > 0
                               ? friendRequestsCount.toString()
                               : '',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(color: Colors.white, fontSize: 12),
                         ),
                       ),
                     );
@@ -249,35 +249,35 @@ class _NavBarState extends State<NavBar> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => GymBuddies()),
+                MaterialPageRoute(builder: (context) => const GymBuddies()),
               );
             },
           ),
 
           ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Settings'),
+            leading: const Icon(Icons.settings),
+            title: const Text('Settings'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SettingsOnePage()),
+                MaterialPageRoute(builder: (context) => const SettingsOnePage()),
               );
             },
           ),
           ListTile(
-            leading: Icon(Icons.help),
-            title: Text('Need help?'),
+            leading: const Icon(Icons.help),
+            title: const Text('Need help?'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => NeedHelp()),
+                MaterialPageRoute(builder: (context) => const NeedHelp()),
               );
             },
           ),
-          Divider(),
+          const Divider(),
           ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Log Out'),
+            leading: const Icon(Icons.logout),
+            title: const Text('Log Out'),
             onTap: () {
               _showLogoutConfirmationDialog(context);
             },
@@ -292,11 +292,11 @@ class _NavBarState extends State<NavBar> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Log Out'),
-          content: Text('Are you sure you want to log out?'),
+          title: const Text('Log Out'),
+          content: const Text('Are you sure you want to log out?'),
           actions: <Widget>[
             TextButton(
-              child: Text(
+              child: const Text(
                 'No',
                 style: TextStyle(color: Colors.black),
               ),
@@ -305,7 +305,7 @@ class _NavBarState extends State<NavBar> {
               },
             ),
             TextButton(
-              child: Text('Yes', style: TextStyle(color: Colors.black)),
+              child: const Text('Yes', style: TextStyle(color: Colors.black)),
               onPressed: () {
                 logOut();
               },

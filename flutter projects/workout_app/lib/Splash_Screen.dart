@@ -21,18 +21,19 @@ class _SplashScreenState extends State<SplashScreen> {
         print('User is currently signed out!');
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       } else {
         print('User is signed in!');
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Nav()),
+          MaterialPageRoute(builder: (context) => const Nav()),
         );
       }
     });
   }
 
+  @override
   void initState() {
     super.initState(); //
 

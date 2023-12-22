@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class AddReviewWidget extends StatefulWidget {
   final Map<String, dynamic> gymData;
 
-  AddReviewWidget({required this.gymData});
+  const AddReviewWidget({super.key, required this.gymData});
 
   @override
   _AddReviewWidgetState createState() => _AddReviewWidgetState();
@@ -13,7 +13,7 @@ class AddReviewWidget extends StatefulWidget {
 
 class _AddReviewWidgetState extends State<AddReviewWidget> {
   double _rating = 0.0;
-  TextEditingController _reviewController = TextEditingController();
+  final TextEditingController _reviewController = TextEditingController();
 
   User? currentUser = FirebaseAuth.instance.currentUser;
 
@@ -26,16 +26,47 @@ class _AddReviewWidgetState extends State<AddReviewWidget> {
     );
   }
 
+  Future<void> calculateAverageRating() async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('gyms')
+          .doc(widget.gymData['gymId'])
+          .collection('reviews')
+          .get();
+
+      List<Map<String, dynamic>> reviews = querySnapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+
+      if (reviews.isNotEmpty) {
+        double sum = 0;
+        for (var review in reviews) {
+          sum += review['rating'];
+        }
+
+        double avgRating = sum / reviews.length;
+
+        // Update the Firestore document with the new rating
+        await FirebaseFirestore.instance
+            .collection('gyms')
+            .doc(widget.gymData['gymId'])
+            .update({'rating': avgRating});
+      }
+    } catch (e) {
+      print('Error calculating and updating average rating: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Add a Review'),
+      title: const Text('Add a Review'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              Text('Rating: '),
+              const Text('Rating: '),
               Slider(
                 value: _rating,
                 onChanged: (value) {
@@ -52,7 +83,7 @@ class _AddReviewWidgetState extends State<AddReviewWidget> {
           ),
           TextField(
             controller: _reviewController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Review',
             ),
             maxLines: 3,
@@ -64,7 +95,7 @@ class _AddReviewWidgetState extends State<AddReviewWidget> {
           onPressed: () {
             Navigator.pop(context);
           },
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
         ),
         TextButton(
           onPressed: () async {
@@ -95,7 +126,7 @@ class _AddReviewWidgetState extends State<AddReviewWidget> {
                   'userPhoto': userPhoto,
                   'timestamp': FieldValue.serverTimestamp(),
                 });
-
+                calculateAverageRating();
                 _showSnackbar("Review Submitted");
                 Navigator.pop(context);
               } catch (e) {
@@ -103,7 +134,7 @@ class _AddReviewWidgetState extends State<AddReviewWidget> {
               }
             }
           },
-          child: Text('Submit'),
+          child: const Text('Submit'),
         ),
       ],
     );

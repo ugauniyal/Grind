@@ -6,10 +6,12 @@ import 'BottomNagivationBar.dart';
 import 'chatDmUI.dart';
 
 void main() {
-  runApp(ChatPage());
+  runApp(const ChatPage());
 }
 
 class ChatPage extends StatefulWidget {
+  const ChatPage({super.key});
+
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
@@ -29,7 +31,7 @@ class _ChatPageState extends State<ChatPage> {
       future: _getFriendUid(document),
       builder: (context, friendUidSnapshot) {
         if (friendUidSnapshot.connectionState == ConnectionState.waiting) {
-          return Text('Loading');
+          return const Text('Loading');
         }
 
         if (friendUidSnapshot.hasError) {
@@ -48,11 +50,11 @@ class _ChatPageState extends State<ChatPage> {
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Text('Error');
+              return const Text('Error');
             }
 
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text('Loading');
+              return const Text('Loading');
             }
 
             DocumentSnapshot<Map<String, dynamic>> requestSnapshot =
@@ -96,7 +98,7 @@ class _ChatPageState extends State<ChatPage> {
       future: _getUserData(friendUid),
       builder: (context, userDataSnapshot) {
         if (userDataSnapshot.connectionState == ConnectionState.waiting) {
-          return Text('loading');
+          return const Text('loading');
         }
 
         if (userDataSnapshot.hasError) {
@@ -136,15 +138,15 @@ class _ChatPageState extends State<ChatPage> {
                         'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
                   ),
                 ),
-                SizedBox(width: 18),
+                const SizedBox(width: 18),
                 Text(
                   userData['name'],
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 60, // Adjust the height between each user row
                 ),
               ],
@@ -193,10 +195,10 @@ class _ChatPageState extends State<ChatPage> {
           color: Colors.white,
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => Nav()),
+            MaterialPageRoute(builder: (context) => const Nav()),
           ),
         ),
-        title: Text(
+        title: const Text(
           'Contacts',
           style: TextStyle(color: Colors.white),
         ),

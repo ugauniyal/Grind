@@ -27,7 +27,7 @@ class _verifyEmailState extends State<verifyEmail> {
       sendVerficationEmail();
 
       timer = Timer.periodic(
-        Duration(seconds: 3),
+        const Duration(seconds: 3),
         (_) => checkEmailVerfied(),
       );
     }
@@ -58,7 +58,7 @@ class _verifyEmailState extends State<verifyEmail> {
       setState(() {
         canResendEmail = false;
       });
-      await Future.delayed(Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 5));
       setState(() {
         canResendEmail = true;
       });
@@ -69,41 +69,41 @@ class _verifyEmailState extends State<verifyEmail> {
 
   @override
   Widget build(BuildContext context) => isEmailVerified
-      ? userInfo()
+      ? const userInfo()
       : Scaffold(
           appBar: AppBar(
-            title: Text('verify email'),
+            title: const Text('verify email'),
           ),
           body: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
-                Text(
+                const Text(
                   'A verification email has been sent to your email',
                   style: TextStyle(fontSize: 20),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 24,
                 ),
                 ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      minimumSize: Size.fromHeight(50),
+                      minimumSize: const Size.fromHeight(50),
                     ),
                     onPressed: canResendEmail ? sendVerficationEmail : null,
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.email,
                       size: 32,
                     ),
-                    label: Text('Resent Email')),
-                SizedBox(
+                    label: const Text('Resent Email')),
+                const SizedBox(
                   height: 8,
                 ),
                 TextButton(
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size.fromHeight(50),
+                    minimumSize: const Size.fromHeight(50),
                   ),
-                  child: Text(
+                  child: const Text(
                     'cancel',
                     style: TextStyle(fontSize: 24),
                   ),

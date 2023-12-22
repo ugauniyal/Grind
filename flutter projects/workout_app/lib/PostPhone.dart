@@ -17,7 +17,7 @@ class _postPhoneState extends State<postPhone> {
   String? _genderValue = "Select";
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-  bool _showPassword = false;
+  final bool _showPassword = false;
   bool _isUsernameAvailable = false;
 
   void _showSnackbar(String message) {
@@ -42,8 +42,8 @@ class _postPhoneState extends State<postPhone> {
           data: ThemeData.light().copyWith(
             primaryColor: Colors.black,
             hintColor: Colors.black,
-            colorScheme: ColorScheme.light(primary: Colors.black),
-            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+            colorScheme: const ColorScheme.light(primary: Colors.black),
+            buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
           ),
           child: child!,
         );
@@ -108,7 +108,7 @@ class _postPhoneState extends State<postPhone> {
         // Navigate to the desired screen after user creation
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => UploadProfilePic()),
+          MaterialPageRoute(builder: (context) => const UploadProfilePic()),
         );
       } else {
         _showSnackbar('User not logged in');
@@ -133,7 +133,7 @@ class _postPhoneState extends State<postPhone> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Update Your Profile'),
+        title: const Text('Update Your Profile'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -141,12 +141,12 @@ class _postPhoneState extends State<postPhone> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: _nameController,
                 cursorColor: Colors.black,
                 decoration: InputDecoration(
-                  labelStyle: TextStyle(color: Colors.black),
+                  labelStyle: const TextStyle(color: Colors.black),
                   labelText: 'Name',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -154,10 +154,10 @@ class _postPhoneState extends State<postPhone> {
                   filled: true,
                   focusColor: Colors.black,
                   fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0),
+                  contentPadding: const EdgeInsets.all(12.0),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: _userController,
                 cursorColor: Colors.black,
@@ -171,7 +171,7 @@ class _postPhoneState extends State<postPhone> {
                   }
                 },
                 decoration: InputDecoration(
-                  labelStyle: TextStyle(color: Colors.black),
+                  labelStyle: const TextStyle(color: Colors.black),
                   labelText: 'Username',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -179,10 +179,10 @@ class _postPhoneState extends State<postPhone> {
                   filled: true,
                   focusColor: Colors.black,
                   fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0),
+                  contentPadding: const EdgeInsets.all(12.0),
                   suffixIcon: _isUsernameAvailable
                       ? null
-                      : Icon(
+                      : const Icon(
                           Icons.warning,
                           color: Colors.red,
                         ),
@@ -192,7 +192,7 @@ class _postPhoneState extends State<postPhone> {
                       color: _isUsernameAvailable ? Colors.green : Colors.red),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _dobController,
                 readOnly: true,
@@ -200,7 +200,7 @@ class _postPhoneState extends State<postPhone> {
                 validator: _validateDOB,
                 cursorColor: Colors.black,
                 decoration: InputDecoration(
-                  labelStyle: TextStyle(color: Colors.black),
+                  labelStyle: const TextStyle(color: Colors.black),
                   labelText: 'Date of Birth',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -208,21 +208,22 @@ class _postPhoneState extends State<postPhone> {
                   filled: true,
                   focusColor: Colors.black,
                   fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0),
+                  contentPadding: const EdgeInsets.all(12.0),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               DropdownButtonFormField(
                 value: _genderValue,
                 items: const [
                   DropdownMenuItem(
-                      child: Text("Select"), value: "Select", enabled: false),
-                  DropdownMenuItem(child: Text("Male"), value: "Male"),
-                  DropdownMenuItem(child: Text("Female"), value: "Female"),
+                      value: "Select", enabled: false,
+                      child: Text("Select")),
+                  DropdownMenuItem(value: "Male", child: Text("Male")),
+                  DropdownMenuItem(value: "Female", child: Text("Female")),
                 ],
                 isExpanded: true,
                 decoration: InputDecoration(
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     labelText: 'Sex',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
@@ -230,14 +231,14 @@ class _postPhoneState extends State<postPhone> {
                     filled: true,
                     focusColor: Colors.black,
                     fillColor: Colors.grey[200],
-                    contentPadding: EdgeInsets.all(12.0)),
+                    contentPadding: const EdgeInsets.all(12.0)),
                 onChanged: (Object? value) {
                   setState(() {
                     _genderValue = value as String;
                   });
                 },
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 160, vertical: 10),
@@ -255,7 +256,7 @@ class _postPhoneState extends State<postPhone> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  child: Text('lESSGo'),
+                  child: const Text('lESSGo'),
                 ),
               ),
             ],

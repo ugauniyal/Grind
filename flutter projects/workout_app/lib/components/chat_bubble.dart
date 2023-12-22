@@ -8,13 +8,13 @@ class ChatBubble extends StatelessWidget {
   final dynamic alignment;
 
   const ChatBubble({
-    Key? key,
+    super.key,
     required this.message,
     required this.messageTime,
     required this.Sender,
     required this.alignment,
     this.isReceiver = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,15 +42,15 @@ class ChatBubble extends StatelessWidget {
         children: [
           Text(
             message,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16.0,
             ),
           ),
-          SizedBox(height: 4.0),
+          const SizedBox(height: 4.0),
           Text(
             messageTime,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.grey,
               fontSize: 12.0,
             ),

@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
 class Cardio extends StatelessWidget {
-  const Cardio({Key? key}) : super(key: key);
+  const Cardio({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cardio Workouts'),
+        title: const Text('Cardio Workouts'),
       ),
       body: ListView(
         children: [
           Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0), // Adjust the padding as needed
+              padding: const EdgeInsets.all(16.0), // Adjust the padding as needed
               child: ClipRRect(
                 borderRadius:
                     BorderRadius.circular(12.0), // Adjust the radius as needed
@@ -27,8 +27,8 @@ class Cardio extends StatelessWidget {
             ),
           ),
 
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          const Padding(
+            padding: EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -83,7 +83,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                 builder:
                     (BuildContext context, AsyncSnapshot<User?> authSnapshot) {
                   if (authSnapshot.connectionState == ConnectionState.waiting) {
-                    return Text('Loading');
+                    return const Text('Loading');
                   }
 
                   if (authSnapshot.hasError) {
@@ -91,7 +91,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                   }
 
                   if (!authSnapshot.hasData || authSnapshot.data == null) {
-                    return Text('No user logged in');
+                    return const Text('No user logged in');
                   }
 
                   User user = authSnapshot.data!;
@@ -108,7 +108,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                         AsyncSnapshot<QuerySnapshot> requestSnapshot) {
                       if (requestSnapshot.connectionState ==
                           ConnectionState.waiting) {
-                        return Text('Loading');
+                        return const Text('Loading');
                       }
 
                       if (requestSnapshot.hasError) {
@@ -117,7 +117,7 @@ class _GymBuddiesState extends State<GymBuddies> {
 
                       if (!requestSnapshot.hasData ||
                           requestSnapshot.data!.docs.isEmpty) {
-                        return Text('No requests available for this user');
+                        return const Text('No requests available for this user');
                       }
 
                       // Process the data from the requests snapshot
@@ -147,7 +147,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                         children: [
                           Text(
                             'Total Friend Requests: $friendRequestsCount',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.blue,
@@ -164,7 +164,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                                       userSnapshot) {
                                 if (userSnapshot.connectionState ==
                                     ConnectionState.waiting) {
-                                  return Text('Loading');
+                                  return const Text('Loading');
                                 }
 
                                 if (userSnapshot.hasError) {
@@ -192,7 +192,7 @@ class _GymBuddiesState extends State<GymBuddies> {
 
                                 if (isAccepted && isBlock) {
                                   // Don't render this user in the UI for friend requests
-                                  return SizedBox.shrink();
+                                  return const SizedBox.shrink();
                                 }
 
                                 // Display only the "name" and "username" fields
@@ -209,16 +209,16 @@ class _GymBuddiesState extends State<GymBuddies> {
                                           ),
                                           radius: 20,
                                         ),
-                                      SizedBox(width: 18),
+                                      const SizedBox(width: 18),
                                       if (userData.containsKey('name'))
                                         Text(
                                           '${userData['name']}',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                      Spacer(), // Add Spacer to push icons to the right
+                                      const Spacer(), // Add Spacer to push icons to the right
                                       GestureDetector(
                                         onTap: () async {
                                           String loggedInUserId = authSnapshot
@@ -249,7 +249,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                                         ),
                                       ),
 
-                                      SizedBox(
+                                      const SizedBox(
                                           width:
                                               10), // Add some spacing between icons
                                       GestureDetector(
@@ -294,7 +294,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                       merge:
                                                           true)); // Use merge to create the document if it doesn't exist
                                         },
-                                        child: Icon(
+                                        child: const Icon(
                                           Icons.check,
                                           color: Colors.green,
                                         ),
@@ -318,7 +318,7 @@ class _GymBuddiesState extends State<GymBuddies> {
           Container(
             padding: const EdgeInsets.all(16.0),
             color: Colors.white,
-            child: ListTile(
+            child: const ListTile(
               title: Text(
                 'Added Friends',
                 style: TextStyle(
@@ -332,7 +332,7 @@ class _GymBuddiesState extends State<GymBuddies> {
             stream: FirebaseAuth.instance.authStateChanges(),
             builder: (BuildContext context, AsyncSnapshot<User?> authSnapshot) {
               if (authSnapshot.connectionState == ConnectionState.waiting) {
-                return Text('loading');
+                return const Text('loading');
               }
 
               if (authSnapshot.hasError) {
@@ -340,7 +340,7 @@ class _GymBuddiesState extends State<GymBuddies> {
               }
 
               if (!authSnapshot.hasData || authSnapshot.data == null) {
-                return Text('No user logged in');
+                return const Text('No user logged in');
               }
 
               User user = authSnapshot.data!;
@@ -356,7 +356,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                     AsyncSnapshot<QuerySnapshot> acceptedSnapshot) {
                   if (acceptedSnapshot.connectionState ==
                       ConnectionState.waiting) {
-                    return Text('Loading');
+                    return const Text('Loading');
                   }
 
                   if (acceptedSnapshot.hasError) {
@@ -365,7 +365,7 @@ class _GymBuddiesState extends State<GymBuddies> {
 
                   if (!acceptedSnapshot.hasData ||
                       acceptedSnapshot.data!.docs.isEmpty) {
-                    return Text('No friend requests available');
+                    return const Text('No friend requests available');
                   }
 
                   // Process the data from the acceptedSnapshot
@@ -389,7 +389,7 @@ class _GymBuddiesState extends State<GymBuddies> {
                               AsyncSnapshot<DocumentSnapshot> userSnapshot) {
                             if (userSnapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return Text('Loading');
+                              return const Text('Loading');
                             }
 
                             if (userSnapshot.hasError) {
@@ -398,7 +398,7 @@ class _GymBuddiesState extends State<GymBuddies> {
 
                             if (!userSnapshot.hasData ||
                                 !userSnapshot.data!.exists) {
-                              return Text('User not found');
+                              return const Text('User not found');
                             }
 
                             // Access the data using userSnapshot.data.data() or userSnapshot.data.get('field_name')
@@ -419,9 +419,9 @@ class _GymBuddiesState extends State<GymBuddies> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           ListTile(
-                                            leading: Icon(Icons.remove_circle,
+                                            leading: const Icon(Icons.remove_circle,
                                                 color: Colors.red),
-                                            title: Text('Remove Friend'),
+                                            title: const Text('Remove Friend'),
                                             onTap: () async {
                                               String loggedInUserId = user
                                                   .uid; // Logged-in user's UID
@@ -458,18 +458,18 @@ class _GymBuddiesState extends State<GymBuddies> {
                                             },
                                           ),
                                           ListTile(
-                                            leading: Icon(Icons.block,
+                                            leading: const Icon(Icons.block,
                                                 color: Colors.black),
-                                            title: Text('Block User'),
+                                            title: const Text('Block User'),
                                             onTap: () {
                                               // Handle block user action
                                               Navigator.pop(context);
                                             },
                                           ),
                                           ListTile(
-                                            leading: Icon(Icons.chat_bubble,
+                                            leading: const Icon(Icons.chat_bubble,
                                                 color: Colors.blue),
-                                            title: Text('Open Chatbox'),
+                                            title: const Text('Open Chatbox'),
                                             onTap: () {
                                               // Handle open chatbox action
                                               Navigator.push(
@@ -511,15 +511,15 @@ class _GymBuddiesState extends State<GymBuddies> {
                                           ),
                                           radius: 20,
                                         ),
-                                      SizedBox(width: 12),
+                                      const SizedBox(width: 12),
                                       Text(
                                         '${userData['name']}',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      Spacer(),
+                                      const Spacer(),
                                       GestureDetector(
                                         onTap: () {
                                           showModalBottomSheet(
@@ -529,11 +529,11 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   ListTile(
-                                                    leading: Icon(
+                                                    leading: const Icon(
                                                         Icons.remove_circle,
                                                         color: Colors.red),
                                                     title:
-                                                        Text('Remove Friend'),
+                                                        const Text('Remove Friend'),
                                                     onTap: () async {
                                                       String loggedInUserId = user
                                                           .uid; // Logged-in user's UID
@@ -574,9 +574,9 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                     },
                                                   ),
                                                   ListTile(
-                                                    leading: Icon(Icons.block,
+                                                    leading: const Icon(Icons.block,
                                                         color: Colors.black),
-                                                    title: Text('Block User'),
+                                                    title: const Text('Block User'),
                                                     onTap: () {
                                                       FirebaseFirestore.instance
                                                           .collection('users')
@@ -595,10 +595,10 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                     },
                                                   ),
                                                   ListTile(
-                                                    leading: Icon(
+                                                    leading: const Icon(
                                                         Icons.chat_bubble,
                                                         color: Colors.blue),
-                                                    title: Text('Open Chatbox'),
+                                                    title: const Text('Open Chatbox'),
                                                     onTap: () {
                                                       Navigator.push(
                                                         context,
@@ -642,12 +642,12 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                           MainAxisSize.min,
                                                       children: [
                                                         ListTile(
-                                                          leading: Icon(
+                                                          leading: const Icon(
                                                               Icons
                                                                   .remove_circle,
                                                               color:
                                                                   Colors.red),
-                                                          title: Text(
+                                                          title: const Text(
                                                               'Remove Friend'),
                                                           onTap: () async {
                                                             String
@@ -697,11 +697,11 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                           },
                                                         ),
                                                         ListTile(
-                                                          leading: Icon(
+                                                          leading: const Icon(
                                                               Icons.block,
                                                               color:
                                                                   Colors.black),
-                                                          title: Text(
+                                                          title: const Text(
                                                               'Block User'),
                                                           onTap: () {
                                                             FirebaseFirestore
@@ -724,11 +724,11 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                           },
                                                         ),
                                                         ListTile(
-                                                          leading: Icon(
+                                                          leading: const Icon(
                                                               Icons.chat_bubble,
                                                               color:
                                                                   Colors.blue),
-                                                          title: Text(
+                                                          title: const Text(
                                                               'Open Chatbox'),
                                                           onTap: () {
                                                             Navigator.push(
@@ -760,9 +760,9 @@ class _GymBuddiesState extends State<GymBuddies> {
                                                   BorderRadius.circular(4.0),
                                               highlightColor: Colors.grey[
                                                   400], // Adjust the color to your preference
-                                              child: Padding(
+                                              child: const Padding(
                                                 padding:
-                                                    const EdgeInsets.all(8.0),
+                                                    EdgeInsets.all(8.0),
                                                 child: Icon(Icons.more_vert),
                                               ),
                                             ),
@@ -782,7 +782,7 @@ class _GymBuddiesState extends State<GymBuddies> {
               );
             },
           ),
-          SizedBox(
+          const SizedBox(
             height: 40,
           )
         ],

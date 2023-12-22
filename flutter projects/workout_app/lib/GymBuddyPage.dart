@@ -6,8 +6,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class GymBuddy extends StatefulWidget {
+  const GymBuddy({super.key});
+
   @override
   _GymBuddyState createState() => _GymBuddyState();
 }
@@ -17,11 +21,14 @@ class _GymBuddyState extends State<GymBuddy> {
   late User _user;
   List<UserData> _filteredUsers = [];
   String? viewPhotoUrl;
-  bool _loadingMoreUsers = false;
+  final bool _loadingMoreUsers = false;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _requestsSubscription;
   late double userLatitude;
   late double userLongitude;
+
+  late bool servicePermission = false;
+  late LocationPermission permission;
 
   @override
   void initState() {
@@ -62,8 +69,56 @@ class _GymBuddyState extends State<GymBuddy> {
     }
   }
 
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // Future<bool> _getCurrentLocation() async {
+  //   servicePermission = await Geolocator.isLocationServiceEnabled();
+  //   if (!servicePermission) {
+  //     print("Service disabled");
+  //     // Show a dialog or message informing the user to enable location services
+  //     // You can use showDialog or any other method to display a message
+  //     return false;
+  //   }
+  //
+  //   permission = await Geolocator.checkPermission();
+  //   if (permission == LocationPermission.denied) {
+  //     // Permission is not granted, request it
+  //     permission = await Geolocator.requestPermission();
+  //     if (permission == LocationPermission.denied) {
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // }
+
+  Future<bool> permissionCheck() async {
+    PermissionStatus LocationStatus = await Permission.location.request();
+
+    if (LocationStatus == PermissionStatus.granted) {
+      return true;
+    } else if (LocationStatus == PermissionStatus.denied) {
+      return false;
+    } else if (LocationStatus == PermissionStatus.permanentlyDenied) {
+      openAppSettings();
+      return false;
+    }
+    return true;
+  }
+
   Future<void> _loadFilteredUsers() async {
-    // Query the 'requests' subcollection for the logged-in user where pending = true
+    DocumentSnapshot<Map<String, dynamic>> currentUserSnapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user.uid)
+            .get();
+
     QuerySnapshot<Map<String, dynamic>> requestsSnapshot =
         await FirebaseFirestore.instance
             .collection('users')
@@ -71,7 +126,6 @@ class _GymBuddyState extends State<GymBuddy> {
             .collection('requests')
             .get();
 
-    // Get the list of swiped user IDs
     List<String> swipedUserIds = requestsSnapshot.docs
         .where((userDoc) => userDoc['swiped'] == true)
         .map((swipedUserDoc) => swipedUserDoc.id)
@@ -83,13 +137,35 @@ class _GymBuddyState extends State<GymBuddy> {
 
     _filteredUsers = allUsersSnapshot.docs
         .where((userDoc) =>
-            !swipedUserIds.contains(userDoc.id) && userDoc.id != _user.uid)
+            !swipedUserIds.contains(userDoc.id) &&
+            userDoc.id != _user.uid &&
+            _isWithinBuddyRadius(userDoc, currentUserSnapshot))
         .map((userDoc) => UserData.fromMap(userDoc.data()))
         .toList();
 
     setState(() {
       _filteredUsers = _filteredUsers;
     });
+  }
+
+  bool _isWithinBuddyRadius(QueryDocumentSnapshot<Map<String, dynamic>> userDoc,
+      DocumentSnapshot<Map<String, dynamic>> currentUser) {
+    double filteredUserLatitude = userDoc['latitude'];
+    double filteredUserLongitude = userDoc['longitude'];
+
+    double userLatitude = currentUser['latitude'];
+    double userLongitude = currentUser['longitude'];
+
+    double distance = calculateDistance(
+      userLatitude,
+      userLongitude,
+      filteredUserLatitude,
+      filteredUserLongitude,
+    );
+
+    double buddyRadius = currentUser['buddyRadius'];
+
+    return distance <= buddyRadius;
   }
 
   Future<void> getCurrentUserLocation() async {
@@ -121,9 +197,8 @@ class _GymBuddyState extends State<GymBuddy> {
   }
 
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const double earthRadius = 6371; // Radius of the Earth in kilometers
+    const double earthRadius = 6371;
 
-    // Convert degrees to radians
     double dLat = _degreesToRadians(lat2 - lat1);
     double dLon = _degreesToRadians(lon2 - lon1);
 
@@ -147,111 +222,149 @@ class _GymBuddyState extends State<GymBuddy> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _filteredUsers.length > 0
-          ? AppinioSwiper(
-              controller: controller,
-              cardCount: _filteredUsers.length,
-              onSwipeEnd: _swipeEnd,
-              onEnd: _onEnd,
-              cardBuilder: (BuildContext context, int index) {
-                String userDob = _filteredUsers[index].age;
-                DateTime userAge = DateTime.parse(userDob);
-                DateTime currentDate = DateTime.now();
-                int age = currentDate.year - userAge.year;
-                if (currentDate.month < userAge.month ||
-                    currentDate.month == userAge.month &&
-                        currentDate.day < userAge.day) {
-                  age--;
-                }
-                double cardHeight = MediaQuery.of(context).size.height * 0.6;
-                String allInterests =
-                    _filteredUsers[index].interests.join(', ');
+    return FutureBuilder<bool>(
+      future: permissionCheck(),
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.data == true) {
+            // User has granted location permission
+            return Scaffold(
+              body: _filteredUsers.isNotEmpty
+                  ? AppinioSwiper(
+                      controller: controller,
+                      cardCount: _filteredUsers.length,
+                      onSwipeEnd: _swipeEnd,
+                      onEnd: _onEnd,
+                      swipeOptions:
+                          const SwipeOptions.only(left: true, right: true),
+                      cardBuilder: (BuildContext context, int index) {
+                        String userDob = _filteredUsers[index].age;
+                        DateTime userAge = DateTime.parse(userDob);
+                        DateTime currentDate = DateTime.now();
+                        int age = currentDate.year - userAge.year;
+                        if (currentDate.month < userAge.month ||
+                            currentDate.month == userAge.month &&
+                                currentDate.day < userAge.day) {
+                          age--;
+                        }
+                        double cardHeight =
+                            MediaQuery.of(context).size.height * 0.6;
+                        String allInterests =
+                            _filteredUsers[index].interests.join(', ');
 
-                // Retrieve latitude and longitude of the filtered user
-                double filteredUserLatitude = _filteredUsers[index].latitude;
-                double filteredUserLongitude = _filteredUsers[index].longitude;
+                        // Retrieve latitude and longitude of the filtered user
+                        double filteredUserLatitude =
+                            _filteredUsers[index].latitude;
+                        double filteredUserLongitude =
+                            _filteredUsers[index].longitude;
 
-                // Calculate distance between logged-in user and filtered user
-                double distance = calculateDistance(
-                  userLatitude,
-                  userLongitude,
-                  filteredUserLatitude,
-                  filteredUserLongitude,
-                );
+                        // Calculate distance between logged-in user and filtered user
+                        double distance = calculateDistance(
+                          userLatitude,
+                          userLongitude,
+                          filteredUserLatitude,
+                          filteredUserLongitude,
+                        );
 
-                return Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      ListTile(
-                        title: Text(_filteredUsers[index].name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('$age years'),
-                            Text(_filteredUsers[index].bio),
+                        return Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              ListTile(
+                                title: Text(_filteredUsers[index].name),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('$age years'),
+                                    Text(_filteredUsers[index].bio),
 
-                            // Display all interests in a single line
-                            if (_filteredUsers[index].interests.isNotEmpty)
-                              Text('Interests: $allInterests'),
+                                    // Display all interests in a single line
+                                    if (_filteredUsers[index]
+                                        .interests
+                                        .isNotEmpty)
+                                      Text('Interests: $allInterests'),
 
-                            // Display the distance between logged-in user and filtered user
-                            Text('Distance: ${distance.toStringAsFixed(2)} km'),
-                          ],
-                        ),
-                      ),
-
-                      // Display the user image using CachedNetworkImage
-                      FutureBuilder<String>(
-                        future: _getUserImage(_filteredUsers[index].uid),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.done) {
-                            return CachedNetworkImage(
-                              imageUrl: snapshot.data ??
-                                  'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
-                              height: cardHeight,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Center(
-                                child: Text('Loading'),
+                                    // Display the distance between logged-in user and filtered user
+                                    Text(
+                                        'Distance: ${distance.toStringAsFixed(2)} km'),
+                                  ],
+                                ),
                               ),
-                              errorWidget: (context, url, error) =>
-                                  Text('Error loading image'),
-                            );
-                          } else if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Center(
-                              child: Text('Loading'),
-                            );
-                          } else {
-                            return Text('Error loading image');
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            )
-          : _loadingMoreUsers
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 8),
-                      Text('Loading more users...'),
-                    ],
-                  ),
-                )
-              : Center(
-                  child: Text('Loading'),
+
+                              // Display the user image using CachedNetworkImage
+                              FutureBuilder<String>(
+                                future:
+                                    _getUserImage(_filteredUsers[index].uid),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    return CachedNetworkImage(
+                                      imageUrl: snapshot.data ??
+                                          'https://moorepediatricnc.com/wp-content/uploads/2022/08/default_avatar.jpg',
+                                      height: cardHeight,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) =>
+                                          const Center(
+                                        child: Text('Loading'),
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          const Text('Error loading image'),
+                                    );
+                                  } else if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                      child: Text('Loading'),
+                                    );
+                                  } else {
+                                    return const Text('Error loading image');
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    )
+                  : _loadingMoreUsers
+                      ? const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 8),
+                              Text('Loading more users...'),
+                            ],
+                          ),
+                        )
+                      : const Center(
+                          child: Text('Loading'),
+                        ),
+            );
+          } else {
+            // User has not granted location permission
+            return Scaffold(
+              body: Container(
+                child: Center(
+                  child: Text(
+                      "Please allow location permissions in your app settings"),
                 ),
+              ),
+            );
+          }
+        } else {
+          return Scaffold(
+            body: Container(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -266,54 +379,85 @@ class _GymBuddyState extends State<GymBuddy> {
 
   Future<void> _swipeEnd(
       int previousIndex, int targetIndex, SwiperActivity activity) async {
-    String? uid = _user?.uid;
+    String? uid = _user.uid;
 
     if (activity is Swipe) {
-      // log('The card was swiped to the : ${activity.direction}');
-      // log('previous index: $previousIndex, target index: $targetIndex');
+      if (activity.direction == AxisDirection.right) {
+        try {
+          // Create or update the request collection for the logged-in user
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(uid)
+              .collection('requests')
+              .doc(_filteredUsers[previousIndex].uid)
+              .set({
+            'uid': _filteredUsers[previousIndex].uid,
+            'pending': false,
+            'accepted': false,
+            'block': false,
+            'swiped': true,
+          }, SetOptions(merge: true));
 
-      try {
-        // Create or update the request collection for the logged-in user
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('requests')
-            .doc(_filteredUsers[previousIndex].uid)
-            .set({
-          'uid': _filteredUsers[previousIndex].uid,
-          'pending': false,
-          'accepted': false,
-          'block': false,
-          'swiped': true,
-        }, SetOptions(merge: true));
+          // Create or update the request collection for the other user
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(_filteredUsers[previousIndex].uid)
+              .collection('requests')
+              .doc(uid)
+              .set({
+            'uid': uid,
+            'pending': true,
+            'accepted': false,
+            'block': false,
+            'swiped': true,
+          }, SetOptions(merge: true));
+        } catch (e) {
+          print('Error updating requests: $e');
+        }
+      } else {
+        try {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(uid)
+              .collection('requests')
+              .doc(_filteredUsers[previousIndex].uid)
+              .set({
+            'uid': _filteredUsers[previousIndex].uid,
+            'pending': false,
+            'accepted': false,
+            'block': false,
+            'swiped': true,
+          }, SetOptions(merge: true));
 
-        // Create or update the request collection for the other user
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(_filteredUsers[previousIndex].uid)
-            .collection('requests')
-            .doc(uid)
-            .set({
-          'uid': uid,
-          'pending': true,
-          'accepted': false,
-          'block': false,
-          'swiped': true,
-        }, SetOptions(merge: true));
-      } catch (e) {
-        print('Error updating requests: $e');
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(_filteredUsers[previousIndex].uid)
+              .collection('requests')
+              .doc(uid)
+              .set({
+            'uid': uid,
+            'pending': false,
+            'accepted': false,
+            'block': false,
+            'swiped': true,
+          }, SetOptions(merge: true));
+        } catch (e) {
+          print('Error updating requests: $e');
+        }
       }
+      print('The card was swiped to the : ${activity.direction}');
+      print('previous index: $previousIndex, target index: $targetIndex');
 
       for (int i = 0; i < _filteredUsers.length; i++) {
         print(_filteredUsers[i].name.toString());
       }
-    } else {
-      // Handle other swipe activities if needed
-    }
+    } else {}
   }
 
   void _onEnd() {
-    // log('end reached!');
+    Container(
+      child: const Text("We have no gym buddies left to show you"),
+    );
   }
 }
 
@@ -353,7 +497,7 @@ class UserData {
 }
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: GymBuddy(),
   ));
 }

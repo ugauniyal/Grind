@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:workout_app/verifyEmail.dart';
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({Key? key}) : super(key: key);
+  const SignUpPage({super.key});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -86,7 +86,7 @@ class _SignUpPageState extends State<SignUpPage> {
               _showSnackbar("Error while signUp");
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SignUpPage()),
+                MaterialPageRoute(builder: (context) => const SignUpPage()),
               );
             }
           } on FirebaseAuthException catch (ex) {
@@ -94,7 +94,7 @@ class _SignUpPageState extends State<SignUpPage> {
           }
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => verifyEmail()),
+            MaterialPageRoute(builder: (context) => const verifyEmail()),
           );
         }
       } on FirebaseAuthException catch (ex) {
@@ -118,7 +118,7 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Sign Up'),
+        title: const Text('Sign Up'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -126,7 +126,7 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: _userController,
                 cursorColor: Colors.black,
@@ -140,7 +140,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   }
                 },
                 decoration: InputDecoration(
-                  labelStyle: TextStyle(color: Colors.black),
+                  labelStyle: const TextStyle(color: Colors.black),
                   labelText: 'Username',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -148,10 +148,10 @@ class _SignUpPageState extends State<SignUpPage> {
                   filled: true,
                   focusColor: Colors.black,
                   fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0),
+                  contentPadding: const EdgeInsets.all(12.0),
                   suffixIcon: _isUsernameAvailable
                       ? null
-                      : Icon(
+                      : const Icon(
                           Icons.warning,
                           color: Colors.red,
                         ),
@@ -161,12 +161,12 @@ class _SignUpPageState extends State<SignUpPage> {
                       color: _isUsernameAvailable ? Colors.green : Colors.red),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: _emailController,
                 cursorColor: Colors.black,
                 decoration: InputDecoration(
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     labelText: 'Email',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
@@ -174,22 +174,22 @@ class _SignUpPageState extends State<SignUpPage> {
                     filled: true,
                     focusColor: Colors.black,
                     fillColor: Colors.grey[200],
-                    contentPadding: EdgeInsets.all(12.0)),
+                    contentPadding: const EdgeInsets.all(12.0)),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 cursorColor: Colors.black,
                 controller: _passwordController,
                 obscureText: !_showPassword,
                 decoration: InputDecoration(
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     labelText: 'Password',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     filled: true,
                     fillColor: Colors.grey[200],
-                    contentPadding: EdgeInsets.all(12.0),
+                    contentPadding: const EdgeInsets.all(12.0),
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
@@ -202,20 +202,20 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     )),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 cursorColor: Colors.black,
                 controller: _confirmPasswordController,
                 obscureText: !_showPassword,
                 decoration: InputDecoration(
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     labelText: 'Confirm Password',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     filled: true,
                     fillColor: Colors.grey[200],
-                    contentPadding: EdgeInsets.all(12.0),
+                    contentPadding: const EdgeInsets.all(12.0),
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
@@ -228,7 +228,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     )),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 160, vertical: 10),
@@ -246,7 +246,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  child: Text('Sign Up'),
+                  child: const Text('Sign Up'),
                 ),
               ),
             ],

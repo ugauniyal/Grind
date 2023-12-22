@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:workout_app/verifyOtpScreen.dart';
 
 class signInWithPhone extends StatefulWidget {
-  const signInWithPhone({Key? key}) : super(key: key);
+  const signInWithPhone({super.key});
 
   @override
   State<signInWithPhone> createState() => _signInWithPhoneState();
@@ -13,7 +13,7 @@ class _signInWithPhoneState extends State<signInWithPhone> {
   TextEditingController phoneController = TextEditingController();
 
   void sendOtp() async {
-    String phone = "+91" + phoneController.text.trim();
+    String phone = "+91${phoneController.text.trim()}";
     await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: phone,
         codeSent: (verificationId, resendToken) {
@@ -29,7 +29,7 @@ class _signInWithPhoneState extends State<signInWithPhone> {
           print(ex.code.toString());
         },
         codeAutoRetrievalTimeout: (verificationId) {},
-        timeout: Duration(seconds: 30));
+        timeout: const Duration(seconds: 30));
   }
 
   @override
@@ -37,24 +37,24 @@ class _signInWithPhoneState extends State<signInWithPhone> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Sign In with Phone"),
+        title: const Text("Sign In with Phone"),
       ),
       body: SafeArea(
         child: ListView(
           children: [
             Padding(
-              padding: EdgeInsets.all(15),
+              padding: const EdgeInsets.all(15),
               child: Column(
                 children: [
                   TextField(
                     controller: phoneController,
-                    decoration: InputDecoration(labelText: "Phone Number"),
+                    decoration: const InputDecoration(labelText: "Phone Number"),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 20,
                   ),
                   ElevatedButton(
-                      child: Text("Sign In"),
+                      child: const Text("Sign In"),
                       onPressed: () {
                         sendOtp();
                       })

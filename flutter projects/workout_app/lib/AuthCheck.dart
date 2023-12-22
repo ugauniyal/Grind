@@ -44,7 +44,7 @@ class _AuthCheckState extends State<AuthCheck> {
 
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => UpdatePassword()),
+              MaterialPageRoute(builder: (context) => const UpdatePassword()),
             );
           } else {
             _showSnackbar('Authentication Failed: Incorrect email');
@@ -75,12 +75,12 @@ class _AuthCheckState extends State<AuthCheck> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               controller: _emailController,
               cursorColor: Colors.black,
               decoration: InputDecoration(
-                  labelStyle: TextStyle(color: Colors.black),
+                  labelStyle: const TextStyle(color: Colors.black),
                   labelText: 'Email',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -88,22 +88,22 @@ class _AuthCheckState extends State<AuthCheck> {
                   filled: true,
                   focusColor: Colors.black,
                   fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0)),
+                  contentPadding: const EdgeInsets.all(12.0)),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               cursorColor: Colors.black,
               controller: _passwordController,
               obscureText: !_showPassword,
               decoration: InputDecoration(
-                  labelStyle: TextStyle(color: Colors.black),
+                  labelStyle: const TextStyle(color: Colors.black),
                   labelText: 'Password',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   filled: true,
                   fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(12.0),
+                  contentPadding: const EdgeInsets.all(12.0),
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() {
@@ -116,7 +116,7 @@ class _AuthCheckState extends State<AuthCheck> {
                     ),
                   )),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Padding(
               padding: const EdgeInsets.all(15.0),
               child: ElevatedButton(
@@ -133,7 +133,7 @@ class _AuthCheckState extends State<AuthCheck> {
                     fontWeight: FontWeight.w500, // Text weight
                   ),
                 ),
-                child: Text('Authenticate'),
+                child: const Text('Authenticate'),
               ),
             ),
             const SizedBox(width: 16.0),

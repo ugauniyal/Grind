@@ -5,14 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_app/EditProfilePage.dart';
 
 class SettingsOnePage extends StatefulWidget {
-  const SettingsOnePage({Key? key}) : super(key: key);
+  const SettingsOnePage({super.key});
 
   @override
   State<SettingsOnePage> createState() => _SettingsOnePageState();
 }
 
 class _SettingsOnePageState extends State<SettingsOnePage> {
-  User _user = FirebaseAuth.instance.currentUser!;
+  final User _user = FirebaseAuth.instance.currentUser!;
   List<String> selectedInterests = [];
 
   String _userPreference = "";
@@ -35,7 +35,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
     'Athletes'
   ];
 
-  TextEditingController _interestController = TextEditingController();
+  final TextEditingController _interestController = TextEditingController();
 
   bool enableDiscovery = true;
   bool sendReadReceipt = true;
@@ -89,11 +89,11 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Select up to 5 Interests:',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 8.0,
           runSpacing: 8.0,
@@ -119,7 +119,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
             );
           }).toList(),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -156,18 +156,6 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
     }
   }
 
-  Future<void> _updatePreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    if (menSelected == true) {
-      prefs.setString('user_preference', 'Men');
-    } else if (womenSelected == true) {
-      prefs.setString('user_preference', 'Women');
-    } else if (bothSelected == true) {
-      prefs.setString('user_preference', 'Both');
-    }
-  }
-
   Widget _buildAddInterestButton(BuildContext context) {
     return ListTile(
       title: ElevatedButton(
@@ -178,7 +166,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
           backgroundColor: Colors.green,
           foregroundColor: Colors.white,
         ),
-        child: Text("Add Interest"),
+        child: const Text("Add Interest"),
       ),
     );
   }
@@ -203,7 +191,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
 
         // Show a success message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Interest added successfully!'),
             duration: Duration(seconds: 2),
           ),
@@ -213,7 +201,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
       // Handle the error
       print('Error adding interest: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Failed to add interest. Please try again.'),
           duration: Duration(seconds: 2),
         ),
@@ -227,7 +215,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
+          title: const Text(
             "Max Interests Reached",
             style: TextStyle(
               fontSize: 18,
@@ -239,15 +227,15 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 "You can only select up to 5 interests.",
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.black87,
                 ),
               ),
-              SizedBox(height: 16),
-              Text(
+              const SizedBox(height: 16),
+              const Text(
                 "Selected Interests:",
                 style: TextStyle(
                   fontSize: 16,
@@ -263,14 +251,14 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.star,
                               color: Colors.amber,
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               interest,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
                               ),
@@ -288,7 +276,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
               onPressed: () {
                 Navigator.pop(context); // Close the popup
               },
-              child: Text(
+              child: const Text(
                 'OK',
                 style: TextStyle(
                   color: Colors.blue, // Customize the color
@@ -326,35 +314,64 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
           },
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             setState(() {
               isDistanceRadiusExpanded = false;
             });
+            try {
+              User? user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                // Update user interests in Firebase
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .set({'buddyRadius': dialogDistanceRadius},
+                        SetOptions(merge: true));
+
+                // Show a success message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Radius changed successfully!'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            } catch (error) {
+              // Handle the error
+              print('Error adding radius: $error');
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Failed to change radius. Please try again.'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green,
             foregroundColor: Colors.white,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
+          child: const Padding(
+            padding: EdgeInsets.all(8.0),
             child: Text("Save"),
           ),
         ),
-        SizedBox(
+        const SizedBox(
           height: 8,
         )
       ],
     );
   }
 
+  @override
   Widget build(BuildContext context) {
     User? user = FirebaseAuth.instance.currentUser;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white54,
-        iconTheme: IconThemeData(color: Colors.black),
-        title: Text(
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text(
           "Settings",
           style: TextStyle(color: Colors.black),
         ),
@@ -373,7 +390,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                           color: Colors.grey.withOpacity(0.5),
                           spreadRadius: 5,
                           blurRadius: 7,
-                          offset: Offset(0, 3),
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -387,7 +404,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
@@ -404,20 +421,20 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                         await Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => EditProfilePage()));
+                                builder: (context) => const EditProfilePage()));
                       },
-                      child: Text(
-                        "Update Profile",
-                        style: TextStyle(color: Colors.white),
-                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
                       ),
+                      child: const Text(
+                        "Update Profile",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 Card(
@@ -429,15 +446,15 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                   child: Column(
                     children: <Widget>[
                       ExpansionTile(
-                        leading: Icon(
+                        leading: const Icon(
                           Icons.social_distance,
                           color: Colors.black,
                         ),
-                        title: Text("Edit Distance radius"),
+                        title: const Text("Edit Distance radius"),
                         trailing: isDistanceRadiusExpanded
-                            ? Icon(Icons.keyboard_arrow_down,
+                            ? const Icon(Icons.keyboard_arrow_down,
                                 color: Colors.black)
-                            : Icon(Icons.keyboard_arrow_right,
+                            : const Icon(Icons.keyboard_arrow_right,
                                 color: Colors.black),
                         onExpansionChanged: (expanded) {
                           setState(() {
@@ -458,17 +475,17 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                             ),
                         ],
                       ),
-                      Divider(),
+                      const Divider(),
                       ExpansionTile(
-                        leading: Icon(
+                        leading: const Icon(
                           Icons.height,
                           color: Colors.black,
                         ),
-                        title: Text("Show Me"),
+                        title: const Text("Show Me"),
                         trailing: isShowMeExpanded
-                            ? Icon(Icons.keyboard_arrow_down,
+                            ? const Icon(Icons.keyboard_arrow_down,
                                 color: Colors.black)
-                            : Icon(Icons.keyboard_arrow_right,
+                            : const Icon(Icons.keyboard_arrow_right,
                                 color: Colors.black),
                         onExpansionChanged: (expanded) {
                           setState(() {
@@ -484,7 +501,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   CheckboxListTile(
-                                    title: Text("Men"),
+                                    title: const Text("Men"),
                                     value: menSelected ??
                                         (_userPreference == "Men"),
                                     activeColor: Colors.black,
@@ -499,7 +516,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                     },
                                   ),
                                   CheckboxListTile(
-                                    title: Text("Women"),
+                                    title: const Text("Women"),
                                     value: womenSelected ??
                                         (_userPreference == "Women"),
                                     activeColor: Colors.black,
@@ -514,7 +531,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                     },
                                   ),
                                   CheckboxListTile(
-                                    title: Text("Both"),
+                                    title: const Text("Both"),
                                     value: bothSelected ??
                                         (_userPreference == "Both"),
                                     activeColor: Colors.black,
@@ -528,7 +545,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                       }
                                     },
                                   ),
-                                  SizedBox(height: 10),
+                                  const SizedBox(height: 10),
                                   if (isShowMeExpanded)
                                     Center(
                                       child: ElevatedButton(
@@ -543,7 +560,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                           } else {
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
-                                              SnackBar(
+                                              const SnackBar(
                                                 content: Text(
                                                     "Please select at least one option."),
                                               ),
@@ -554,29 +571,29 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                           backgroundColor: Colors.green,
                                           foregroundColor: Colors.white,
                                         ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(8.0),
                                           child: Text("Save"),
                                         ),
                                       ),
                                     ),
-                                  SizedBox(height: 8),
+                                  const SizedBox(height: 8),
                                 ],
                               ),
                             ),
                         ],
                       ),
-                      Divider(),
+                      const Divider(),
                       ExpansionTile(
-                        leading: Icon(
+                        leading: const Icon(
                           Icons.height,
                           color: Colors.black,
                         ),
-                        title: Text("Level of gym buddy"),
+                        title: const Text("Level of gym buddy"),
                         trailing: isLevelOfGymBuddyExpanded
-                            ? Icon(Icons.keyboard_arrow_down,
+                            ? const Icon(Icons.keyboard_arrow_down,
                                 color: Colors.black)
-                            : Icon(Icons.keyboard_arrow_right,
+                            : const Icon(Icons.keyboard_arrow_right,
                                 color: Colors.black),
                         onExpansionChanged: (expanded) {
                           setState(() {
@@ -592,7 +609,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   CheckboxListTile(
-                                    title: Text("Beginner"),
+                                    title: const Text("Beginner"),
                                     value: beginnerSelected,
                                     activeColor: Colors.black,
                                     onChanged: (bool? value) {
@@ -604,7 +621,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                     },
                                   ),
                                   CheckboxListTile(
-                                    title: Text("Intermediate"),
+                                    title: const Text("Intermediate"),
                                     value: intermediateSelected,
                                     activeColor: Colors.black,
                                     onChanged: (bool? value) {
@@ -616,7 +633,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                     },
                                   ),
                                   CheckboxListTile(
-                                    title: Text("Advanced"),
+                                    title: const Text("Advanced"),
                                     value: advancedSelected,
                                     activeColor: Colors.black,
                                     onChanged: (bool? value) {
@@ -627,7 +644,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                       }
                                     },
                                   ),
-                                  SizedBox(
+                                  const SizedBox(
                                     height: 10,
                                   ),
                                   if (isLevelOfGymBuddyExpanded)
@@ -644,7 +661,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                             });
                                           } else {
                                             ScaffoldMessenger.of(context)
-                                                .showSnackBar(SnackBar(
+                                                .showSnackBar(const SnackBar(
                                                     content: Text(
                                                         "Please select at least one option.")));
                                           }
@@ -653,13 +670,13 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                                           backgroundColor: Colors.green,
                                           foregroundColor: Colors.white,
                                         ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(8.0),
                                           child: Text("Save"),
                                         ),
                                       ),
                                     ),
-                                  SizedBox(
+                                  const SizedBox(
                                     height: 8,
                                   )
                                 ],
@@ -667,17 +684,17 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                             ),
                         ],
                       ),
-                      Divider(),
+                      const Divider(),
                       ExpansionTile(
-                        leading: Icon(
+                        leading: const Icon(
                           Icons.interests,
                           color: Colors.black,
                         ),
-                        title: Text("Interests"),
+                        title: const Text("Interests"),
                         trailing: isInterestExpanded
-                            ? Icon(Icons.keyboard_arrow_down,
+                            ? const Icon(Icons.keyboard_arrow_down,
                                 color: Colors.black)
-                            : Icon(Icons.keyboard_arrow_right,
+                            : const Icon(Icons.keyboard_arrow_right,
                                 color: Colors.black),
                         onExpansionChanged: (expanded) {
                           setState(() {
@@ -695,8 +712,8 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                 const SizedBox(
                   height: 10.0,
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
+                const Padding(
+                  padding: EdgeInsets.only(left: 8.0),
                   child: Text(
                     "Enable Discovery",
                     style: TextStyle(
@@ -713,7 +730,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
                     activeColor: Colors.black,
                     contentPadding: const EdgeInsets.all(0),
                     value: enableDiscovery,
-                    title: Text(
+                    title: const Text(
                       'Enable Discovery',
                       style: TextStyle(fontSize: 13),
                     ),
@@ -742,7 +759,7 @@ class _SettingsOnePageState extends State<SettingsOnePage> {
 class InterestItem extends StatelessWidget {
   final String title;
 
-  InterestItem({required this.title});
+  const InterestItem({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
